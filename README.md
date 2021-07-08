@@ -10,7 +10,7 @@ Written in Python3, pyAbacus relies on the following modules:
 
 
 ## Installation
-`pyAbacus` can be installed using `pip` as: 
+`abacusSoftware` can be installed using `pip` as: 
 ```
 pip install abacusSoftware
 ```
