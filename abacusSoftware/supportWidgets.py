@@ -88,16 +88,17 @@ class Tabs(QFrame):
 
         scrollArea1 = QtWidgets.QScrollArea()
         scrollArea1.setWidgetResizable(True)
-        scrollArea1.setStyleSheet("background:transparent;")
         scrollArea2 = QtWidgets.QScrollArea()
         scrollArea2.setWidgetResizable(True)
-        scrollArea2.setStyleSheet("background:transparent;")
         scrollArea3 = QtWidgets.QScrollArea()
         scrollArea3.setWidgetResizable(True)
-        scrollArea3.setStyleSheet("background:transparent;")
 
         self.single_tab = QGroupBox("Single")
+        self.single_tab.setCheckable(True)
+        self.single_tab.toggled.connect(self.onToggled)
         self.double_tab = QGroupBox("Double")
+        self.double_tab.setCheckable(True)
+        self.double_tab.toggled.connect(self.onToggled)
         self.multiple_tab = QGroupBox("Multiple")
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -193,6 +194,11 @@ class Tabs(QFrame):
         elif self.last_multiple_checked != letters:
             getattr(self, letters).setChecked(True)
             self.last_multiple_checked = letters
+
+    def onToggled(self, on):
+        for box in self.sender().findChildren(QtWidgets.QCheckBox):
+            box.setChecked(on)
+            box.setEnabled(True)
 
 class Table(QtWidgets.QTableWidget):
     def __init__(self, active_labels, active_indexes):

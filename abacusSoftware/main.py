@@ -523,7 +523,7 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
-        msg.setText('An Error has ocurred.\n%s' % error_text)
+        msg.setText('An Error has occurred.\n%s' % error_text)
         msg.setWindowTitle("Error")
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msg.exec_()
