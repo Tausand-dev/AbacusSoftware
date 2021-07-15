@@ -28,7 +28,8 @@ from abacusSoftware.menuBar import AboutWindow
 from abacusSoftware.exceptions import ExtentionError
 from abacusSoftware.files import ResultsFiles, RingBuffer
 from abacusSoftware.supportWidgets import Table, CurrentLabels, ConnectDialog, \
-    SettingsDialog, SubWindow, ClickableLineEdit, Tabs, SamplingWidget
+    SettingsDialog, SubWindow, ClickableLineEdit, Tabs, SamplingWidget, \
+    PlotConfigsDialog
 
 import pyAbacus as abacus
 
@@ -565,12 +566,14 @@ class MainWindow(QMainWindow):
     def initPlots(self):
         self.removePlots()
         self.legend = self.counts_plot.addLegend()
-        n = len(constants.COLORS)
-        symbolSize = 5
+        nColors = len(constants.COLORS)
+        nSymbols = len(constants.SYMBOLS)
+        symbolSize = 8
         for i in range(len(self.active_channels)):
-            color = constants.COLORS[i % n]
+            color = constants.COLORS[i % nColors]
+            symbol = constants.SYMBOLS[i % nSymbols]
             letter = self.active_channels[i]
-            plot = self.counts_plot.plot(pen=color, symbol='o',
+            plot = self.counts_plot.plot(pen=color, symbol=symbol,
                                          symbolPen=color, symbolBrush=color,
                                          symbolSize=symbolSize, name=letter)
             self.plot_lines.append(plot)
@@ -641,8 +644,11 @@ class MainWindow(QMainWindow):
     def setDarkTheme(self):
         constants.IS_LIGHT_THEME = False
         self.plot_win.setBackground((25, 35, 45))
-        self.counts_plot.getAxis('bottom').setPen(foreground='w')
-        self.counts_plot.getAxis('left').setPen(foreground='w')
+        whitePen = pg.mkPen(color=(255, 255, 255))
+        self.counts_plot.getAxis('bottom').setPen(whitePen)
+        self.counts_plot.getAxis('left').setPen(whitePen)
+        self.counts_plot.getAxis('bottom').setTextPen(whitePen)
+        self.counts_plot.getAxis('left').setTextPen(whitePen)
         self.theme_action.setText('Light theme')
         self.delaySweepDialog.setDarkTheme()
         self.sleepSweepDialog.setDarkTheme()
@@ -650,7 +656,8 @@ class MainWindow(QMainWindow):
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
 
-        app.setStyleSheet(qdarkstyle.load_stylesheet_from_environment(is_pyqtgraph=True))
+        dark_stylesheet = qdarkstyle.load_stylesheet(qt_api=os.environ['PYQTGRAPH_QT_LIB'])
+        app.setStyleSheet(dark_stylesheet)
 
     def setLightTheme(self):
         constants.IS_LIGHT_THEME = True
@@ -658,8 +665,11 @@ class MainWindow(QMainWindow):
         app.setStyleSheet("")
 
         self.plot_win.setBackground(None)
-        self.counts_plot.getAxis('bottom').setPen()
-        self.counts_plot.getAxis('left').setPen()
+        blackPen = pg.mkPen(color=(0, 0, 0))
+        self.counts_plot.getAxis('bottom').setPen(blackPen)
+        self.counts_plot.getAxis('left').setPen(blackPen)
+        self.counts_plot.getAxis('bottom').setTextPen(blackPen)
+        self.counts_plot.getAxis('left').setTextPen(blackPen)
 
         self.delaySweepDialog.setLightTheme()
         self.sleepSweepDialog.setLightTheme()
@@ -798,9 +808,23 @@ class MainWindow(QMainWindow):
 
         self.subwindow_plots = SubWindow(self)
         self.plot_win = pg.GraphicsWindow()
-        self.subwindow_plots.setWidget(self.plot_win)
+
+        self.plot_config_button = QPushButton('Configure plot')
+        self.plot_config_button.setMaximumSize(QtCore.QSize(140, 60))
+        self.plot_config_button.clicked.connect(self.configPlot)
+
+        self.subwindow_plots.layout().setSpacing(0)
+        self.subwindow_plots.layout().setContentsMargins(0,0,0,0)
+        self.subwindow_plots.layout().addWidget(self.plot_win)
+        self.subwindow_plots.layout().addWidget(self.plot_config_button)
+
         self.subwindow_plots.setWindowTitle("Plots")
         self.mdi.addSubWindow(self.subwindow_plots)
+
+    def configPlot(self):
+        print(abacus.getAllSettings(self.port_name))
+        print(abacus.constants.COINCIDENCE_WINDOW_STEP_VALUE)
+        self.plot_config_dialog = PlotConfigsDialog(self.plot_win)
 
     def subSettings(self, new=True):
         def fillFormLayout(layout, values, new=True):
