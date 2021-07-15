@@ -7,7 +7,7 @@ try:
     from PyQt5.QtGui import QTableWidgetItem
     from PyQt5.QtWidgets import QSizePolicy, QTabWidget, QWidget, QCheckBox, \
                         QVBoxLayout, QFrame, QGroupBox, QLabel, QSizePolicy, \
-                        QComboBox, QSpinBox, QFormLayout
+                        QComboBox, QSpinBox, QFormLayout, QDialog
 except ModuleNotFoundError:
     from PyQt4 import QtWidgets, QtGui, QtCore
     from PyQt4.QtGui import QTableWidgetItem
@@ -727,3 +727,11 @@ class ClickableLineEdit(QtGui.QLineEdit):
     def mousePressEvent(self, event):
         self.clicked.emit()
         QtGui.QLineEdit.mousePressEvent(self, event)
+
+class PlotConfigsDialog(QDialog):
+    def __init__(self, parent):
+        super(PlotConfigsDialog, self).__init__(parent)
+
+        self.parent = parent
+        
+        self.exec()

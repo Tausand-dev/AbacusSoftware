@@ -201,13 +201,19 @@ class SweepDialogBase(QDialog):
 
     def setDarkTheme(self):
         self.plot_win.setBackground((25, 35, 45))
-        self.plot.getAxis('bottom').setPen(foreground = 'w')
-        self.plot.getAxis('left').setPen(foreground = 'w')
+        whitePen = pg.mkPen(color=(255, 255, 255))
+        self.plot.getAxis('bottom').setPen(whitePen)
+        self.plot.getAxis('left').setPen(whitePen)
+        self.plot.getAxis('bottom').setTextPen(whitePen)
+        self.plot.getAxis('left').setTextPen(whitePen)
 
     def setLightTheme(self):
         self.plot_win.setBackground(None)
-        self.plot.getAxis('bottom').setPen()
-        self.plot.getAxis('left').setPen()
+        blackPen = pg.mkPen(color=(0, 0, 0))
+        self.plot.getAxis('bottom').setPen(blackPen)
+        self.plot.getAxis('left').setPen(blackPen)
+        self.plot.getAxis('bottom').setTextPen(blackPen)
+        self.plot.getAxis('left').setTextPen(blackPen)
 
 class DelayDialog(SweepDialogBase):
     def __init__(self, parent):
