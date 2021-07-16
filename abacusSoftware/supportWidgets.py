@@ -735,3 +735,4 @@ class PlotConfigsDialog(QDialog):
         self.parent = parent
         
         self.exec()
+        

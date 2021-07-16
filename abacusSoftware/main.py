@@ -413,15 +413,14 @@ class MainWindow(QMainWindow):
             event.ignore()
 
     def coincidenceWindowMethod(self, val):
+        # TODO: when values are decreasing in the SpinBox, values change using 
+        # the previous step. For example, 1000 should become 990 not 900
         text_value = "%d" % val
-        if self.number_channels > 2:
-            step = 10 ** int(np.log10(val) - 1)
-            if step < 10: step = abacus.constants.COINCIDENCE_WINDOW_STEP_VALUE  #updated on v1.4.0 (2020-06-25)
-        else:  # when num_channels=2. New on v1.4.0 (2020-06-26)
-            if val < 100:
-                step = abacus.constants.COINCIDENCE_WINDOW_STEP_VALUE
-            else:
-                step = 10  # 10ns
+        step = 10 ** int(np.log10(val) - 1)
+        if step < 10 and val >= 10: 
+            step = max(2, abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE)
+        if step < 10 and val < 10: 
+            step = abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE
         self.coincidence_spinBox.setSingleStep(step)
         if self.port_name != None:
             try:
