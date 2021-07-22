@@ -151,6 +151,7 @@ class MainWindow(QMainWindow):
         self.clear_button.clicked.connect(self.clearPlot)
 
         self.coincidence_spinBox.valueChanged.connect(self.coincidenceWindowMethod)
+        self.last_valid_value_coincidence_window = abacus.constants.COINCIDENCE_WINDOW_DEFAULT_VALUE
 
         """
         Plot
@@ -328,8 +329,9 @@ class MainWindow(QMainWindow):
                         custom = settings.getSetting("config_custom_c%d" % (i + 1))
                         self.tabs_widget.setChecked(custom)
 
-                if (self.coincidence_spinBox.value() != coin) & self.coincidence_spinBox.keyboardTracking():
+                if self.coincidence_spinBox.value() != coin:
                     self.coincidence_spinBox.setValue(coin)
+
                 for i in range(self.number_channels):
                     letter = self.getLetter(i)
                     delay = self.delay_widgets[i]
@@ -343,6 +345,7 @@ class MainWindow(QMainWindow):
 
                 if (self.sampling_widget.getValue() != samp):
                     self.sampling_widget.setValue(samp)
+
             except abacus.BaseError as e:
                 pass
             except SerialException as e:
@@ -412,34 +415,81 @@ class MainWindow(QMainWindow):
         else:
             event.ignore()
 
-    def coincidenceWindowMethod(self, val):
-        # TODO: when values are decreasing in the SpinBox, values change using 
-        # the previous step. For example, 1000 should become 990 not 900
-        text_value = "%d" % val
-        step = 10 ** int(np.log10(val) - 1)
-        if step < 10 and val >= 10: 
-            step = max(2, abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE)
-        if step < 10 and val < 10: 
-            step = abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE
+    def coincidenceWindowMethod(self, value):
+        self.coincidence_spinBox.setKeyboardTracking(False)
+        value_is_valid = self.checkSpinboxValue(value)
+        last_value = self.last_valid_value_coincidence_window
+        last_step = self.computeSpinboxStep(last_value)
+        limits_of_ranges = (10,100,1000,10000)
+
+        if not value_is_valid: 
+            value = self.findValidValueForCoincidenceWindow(value)
+            step = self.computeSpinboxStep(value)
+            self.coincidence_spinBox.setValue(value)
+        elif last_value in limits_of_ranges and value == last_value - last_step:
+            step = self.computeSpinboxStep(value)
+            value = last_value - step
+            self.coincidence_spinBox.setValue(value)
+        else:
+            step = self.computeSpinboxStep(value)
+
         self.coincidence_spinBox.setSingleStep(step)
+
         if self.port_name != None:
             try:
-                abacus.setSetting(self.port_name, 'coincidence_window', val)
-                self.writeParams("Coincidence Window (ns), %s" % val)
-                self.coincidence_spinBox.setKeyboardTracking(True)
-                self.coincidence_spinBox.setStyleSheet("")
+                abacus.setSetting(self.port_name, 'coincidence_window', value)
+                self.writeParams("Coincidence Window (ns), %s" % value)
+                self.last_valid_value_coincidence_window = value
             except abacus.InvalidValueError:
-                self.coincidence_spinBox.setKeyboardTracking(False)
                 self.coincidence_spinBox.setStyleSheet("color: rgb(255,0,0); selection-background-color: rgb(255,0,0)")
             except serial.serialutil.SerialException:
                 self.errorWindow(e)
         elif abacus.constants.DEBUG:
-            print("Coincidence Window Value: %d" % val)
+            print("Coincidence Window Value: %d" % value)
         try:
-            self.sleepSweepDialog.setCoincidence(val)
-            self.delaySweepDialog.setCoincidence(val)
+            self.sleepSweepDialog.setCoincidence(value)
+            self.delaySweepDialog.setCoincidence(value)
         except AttributeError:
             pass
+
+    def checkSpinboxValue(self, val):
+        """ Checks if val is a valid value based on the range it's is and the resolution
+            of the device """
+        validValue = False
+        if val > 1000 and val <= 10000:
+            validValue = val % 100 == 0
+        elif val > 100 and val <= 1000:
+            validValue = val % 10 == 0
+        elif val > 10 and val <= 100:
+            if abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE != 1:
+                validValue = val % abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE == 0
+            else: # For devices with 1 ns resolution
+                validValue = val % 2 == 0
+        else:
+            validValue = val % abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE == 0
+        return validValue
+
+    def computeSpinboxStep(self, value):
+        step = 10 ** int(np.log10(value) - 1)
+        if step < 10 and value >= 10: 
+            step = max(2, abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE)
+        if step < 10 and value < 10: 
+            step = abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE
+        return step
+
+    def findValidValueForCoincidenceWindow(self, val):
+        temp_val = val
+        num_of_digits = int(np.log10(val))+1
+        if num_of_digits == 1:
+            val = val - val % abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE
+        elif num_of_digits == 2:
+            val = val//(10**(num_of_digits-1))*(10**(num_of_digits-1))
+            step = self.computeSpinboxStep(val)
+            adder = (temp_val % val)//step * step
+            val = val + adder
+        elif num_of_digits >= 3:
+            val = val//(10**(num_of_digits-2))*(10**(num_of_digits-2))
+        return val
 
     def connect(self):
         if self.port_name != None:
@@ -485,6 +535,11 @@ class MainWindow(QMainWindow):
                 self.acquisition_button.setDisabled(True)
 
     def delayMethod(self, widget, letter, val):
+
+        # If the spinbox value is not a valid value (False) it will try to set a correct value that is close
+        if widget.keyboardTracking() == False: 
+            val = self.findValidValueForCoincidenceWindow(val)
+
         if self.port_name != None:
             try:
                 abacus.setSetting(self.port_name, 'delay_%s' % letter, val)
@@ -724,14 +779,19 @@ class MainWindow(QMainWindow):
         self.__sleep_timer__.start()
 
     def sleepMethod(self, widget, letter, val):
+        widget.setKeyboardTracking(False)
+        # If the spinbox value is not a valid value (False) it will try to set a correct value that is close
+        if self.checkSpinboxValue(val) == False: 
+            val = self.findValidValueForCoincidenceWindow(val)
+
         if self.port_name != None:
             try:
                 abacus.setSetting(self.port_name, 'sleep_%s' % letter, val)
                 self.writeParams("Sleep %s (ns), %s" % (letter, val))
-                widget.setKeyboardTracking(True)
+                #widget.setKeyboardTracking(True)
                 widget.setStyleSheet("")
             except abacus.InvalidValueError:
-                widget.setKeyboardTracking(False)
+                #widget.setKeyboardTracking(False)
                 widget.setStyleSheet("color: rgb(255,0,0); selection-background-color: rgb(255,0,0)")
             except SerialException as e:
                 self.errorWindow(e)
@@ -954,6 +1014,7 @@ class MainWindow(QMainWindow):
                                                   self.sampling_label, self.samplingMethod)
             self.coincidence_label = QLabel("Coincidence window (ns):")
             self.coincidence_spinBox = QSpinBox()
+            self.coincidence_spinBox.setToolTip("Press enter after editing with keyboard")
             self.coincidence_spinBox.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
 
             createWidgets()
