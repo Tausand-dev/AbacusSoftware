@@ -174,6 +174,13 @@ class MainWindow(QMainWindow):
         self.check_timer.setInterval(constants.CHECK_RATE)
         self.check_timer.timeout.connect(self.checkParams)
 
+        self.lose_focus_timer = QtCore.QTimer()
+        self.lose_focus_timer.timeout.connect(self.spinboxLoseFocus)
+
+        self.check_focus_timer = QtCore.QTimer()
+        self.check_focus_timer.start(6000) # The timeout interval here should be larger than the one of self.lose_focus_timer 
+        self.check_focus_timer.timeout.connect(self.checkSpinboxFocus)
+
         self.results_files = None
         self.params_buffer = ""
         self.init_time = 0
@@ -415,6 +422,22 @@ class MainWindow(QMainWindow):
         else:
             event.ignore()
 
+    def checkSpinboxFocus(self):
+        if self.coincidence_spinBox.hasFocus():
+            self.lose_focus_timer.start(5000)
+        for widget in self.delay_widgets:
+            if widget.hasFocus(): self.lose_focus_timer.start(5000)
+        for widget in self.sleep_widgets:
+            if widget.hasFocus(): self.lose_focus_timer.start(5000)
+
+    def spinboxLoseFocus(self):
+        self.coincidence_spinBox.clearFocus()
+        for widget in self.delay_widgets:
+            widget.clearFocus()
+        for widget in self.sleep_widgets:
+            widget.clearFocus()
+        self.lose_focus_timer.stop()
+
     def coincidenceWindowMethod(self, value):
         self.coincidence_spinBox.setKeyboardTracking(False)
         value_is_valid = self.checkSpinboxValue(value)
@@ -433,7 +456,7 @@ class MainWindow(QMainWindow):
         else:
             step = self.computeSpinboxStep(value)
 
-        self.coincidence_spinBox.setSingleStep(step)
+        self.coincidence_spinBox.setSingleStep(step)        
 
         if self.port_name != None:
             try:
@@ -535,7 +558,6 @@ class MainWindow(QMainWindow):
                 self.acquisition_button.setDisabled(True)
 
     def delayMethod(self, widget, letter, val):
-
         # If the spinbox value is not a valid value (False) it will try to set a correct value that is close
         if widget.keyboardTracking() == False: 
             val = self.findValidValueForCoincidenceWindow(val)
@@ -779,19 +801,18 @@ class MainWindow(QMainWindow):
         self.__sleep_timer__.start()
 
     def sleepMethod(self, widget, letter, val):
-        widget.setKeyboardTracking(False)
         # If the spinbox value is not a valid value (False) it will try to set a correct value that is close
-        if self.checkSpinboxValue(val) == False: 
+        if widget.keyboardTracking() == False: 
             val = self.findValidValueForCoincidenceWindow(val)
 
         if self.port_name != None:
             try:
                 abacus.setSetting(self.port_name, 'sleep_%s' % letter, val)
                 self.writeParams("Sleep %s (ns), %s" % (letter, val))
-                #widget.setKeyboardTracking(True)
+                widget.setKeyboardTracking(True)
                 widget.setStyleSheet("")
             except abacus.InvalidValueError:
-                #widget.setKeyboardTracking(False)
+                widget.setKeyboardTracking(False)
                 widget.setStyleSheet("color: rgb(255,0,0); selection-background-color: rgb(255,0,0)")
             except SerialException as e:
                 self.errorWindow(e)
@@ -881,9 +902,8 @@ class MainWindow(QMainWindow):
         self.mdi.addSubWindow(self.subwindow_plots)
 
     def configPlot(self):
-        print(abacus.getAllSettings(self.port_name))
-        print(abacus.constants.COINCIDENCE_WINDOW_STEP_VALUE)
-        self.plot_config_dialog = PlotConfigsDialog(self.plot_win)
+        self.plot_config_dialog = PlotConfigsDialog(self.plot_win, self.active_channels)
+        self.plot_config_dialog.exec_()
 
     def subSettings(self, new=True):
         def fillFormLayout(layout, values, new=True):
