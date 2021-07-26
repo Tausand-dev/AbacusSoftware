@@ -558,20 +558,21 @@ class MainWindow(QMainWindow):
                 self.acquisition_button.setDisabled(True)
 
     def delayMethod(self, widget, letter, val):
-        # If the spinbox value is not a valid value (False) it will try to set a correct value that is close
-        if widget.keyboardTracking() == False: 
+        widget.setKeyboardTracking(False)
+
+        # If the spinbox value is not a multiple of the minimum resolution it will try to set a correct value that is close
+        if not val % abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE == 0: 
             val = self.findValidValueForCoincidenceWindow(val)
+
+        widget.setValue(val)
 
         if self.port_name != None:
             try:
                 abacus.setSetting(self.port_name, 'delay_%s' % letter, val)
                 self.writeParams("Delay %s (ns), %s" % (letter, val))
-                widget.setKeyboardTracking(True)
                 widget.setStyleSheet("")
             except abacus.InvalidValueError:
-                widget.setKeyboardTracking(False)
                 widget.setStyleSheet("color: rgb(255,0,0); selection-background-color: rgb(255,0,0)")
-
             except SerialException as e:
                 self.errorWindow(e)
         elif abacus.constants.DEBUG:
@@ -801,18 +802,20 @@ class MainWindow(QMainWindow):
         self.__sleep_timer__.start()
 
     def sleepMethod(self, widget, letter, val):
-        # If the spinbox value is not a valid value (False) it will try to set a correct value that is close
-        if widget.keyboardTracking() == False: 
+        widget.setKeyboardTracking(False)
+
+        # If the spinbox value is not a multiple of the minimum resolution it will try to set a correct value that is close
+        if not val % abacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE == 0: 
             val = self.findValidValueForCoincidenceWindow(val)
+
+        widget.setValue(val)
 
         if self.port_name != None:
             try:
                 abacus.setSetting(self.port_name, 'sleep_%s' % letter, val)
                 self.writeParams("Sleep %s (ns), %s" % (letter, val))
-                widget.setKeyboardTracking(True)
                 widget.setStyleSheet("")
             except abacus.InvalidValueError:
-                widget.setKeyboardTracking(False)
                 widget.setStyleSheet("color: rgb(255,0,0); selection-background-color: rgb(255,0,0)")
             except SerialException as e:
                 self.errorWindow(e)
