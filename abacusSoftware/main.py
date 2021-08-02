@@ -33,6 +33,8 @@ from abacusSoftware.supportWidgets import Table, CurrentLabels, ConnectDialog, \
 
 import pyAbacus as abacus
 
+import breeze_resources
+
 STDOUT = None
 
 
@@ -643,14 +645,24 @@ class MainWindow(QMainWindow):
     def initPlots(self):
         self.removePlots()
         self.legend = self.counts_plot.addLegend()
-        nColors = len(constants.COLORS)
+        if not constants.IS_LIGHT_THEME:
+            nColors = len(constants.DARK_COLORS)
+        else:
+            nColors = len(constants.COLORS)
         nSymbols = len(constants.SYMBOLS)
         symbolSize = 8
+        linewidth = 1
         for i in range(len(self.active_channels)):
-            color = constants.COLORS[i % nColors]
+            if not constants.IS_LIGHT_THEME:
+                color = constants.DARK_COLORS[i % nColors]
+            else:
+                color = constants.COLORS[i % nColors]
             symbol = constants.SYMBOLS[i % nSymbols]
             letter = self.active_channels[i]
-            plot = self.counts_plot.plot(pen=color, symbol=symbol,
+            #pen = QtGui.QPen(QtGui.QColor(color))
+            #pen.setWidth(linewidth)
+            pen = pg.mkPen(color, width=linewidth)
+            plot = self.counts_plot.plot(pen=pen, symbol=symbol,
                                          symbolPen=color, symbolBrush=color,
                                          symbolSize=symbolSize, name=letter)
             self.plot_lines.append(plot)
@@ -720,7 +732,9 @@ class MainWindow(QMainWindow):
 
     def setDarkTheme(self):
         constants.IS_LIGHT_THEME = False
-        self.plot_win.setBackground((25, 35, 45))
+        self.initPlots()
+        #self.plot_win.setBackground((25, 35, 45))
+        self.plot_win.setBackground((49, 54, 59))
         whitePen = pg.mkPen(color=(255, 255, 255))
         self.counts_plot.getAxis('bottom').setPen(whitePen)
         self.counts_plot.getAxis('left').setPen(whitePen)
@@ -730,16 +744,19 @@ class MainWindow(QMainWindow):
         self.delaySweepDialog.setDarkTheme()
         self.sleepSweepDialog.setDarkTheme()
 
+        self.current_labels.createLabels(self.active_channels)
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
 
-        dark_stylesheet = qdarkstyle.load_stylesheet(qt_api=os.environ['PYQTGRAPH_QT_LIB'])
+        #app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api=os.environ['PYQTGRAPH_QT_LIB']))
         app.setStyleSheet(dark_stylesheet)
 
     def setLightTheme(self):
         constants.IS_LIGHT_THEME = True
+        self.initPlots()
         self.theme_action.setText('Dark theme')
-        app.setStyleSheet("")
+        app.setStyleSheet(light_stylesheet)
+        #app.setStyleSheet("")
 
         self.plot_win.setBackground(None)
         blackPen = pg.mkPen(color=(0, 0, 0))
@@ -751,6 +768,7 @@ class MainWindow(QMainWindow):
         self.delaySweepDialog.setLightTheme()
         self.sleepSweepDialog.setLightTheme()
 
+        self.current_labels.createLabels(self.active_channels)
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
 
@@ -905,7 +923,14 @@ class MainWindow(QMainWindow):
         self.mdi.addSubWindow(self.subwindow_plots)
 
     def configPlot(self):
-        self.plot_config_dialog = PlotConfigsDialog(self.plot_win, self.active_channels)
+        iconWidth = 100
+        iconHeight = 20
+        iconSize = QtCore.QSize(iconWidth, iconHeight)
+        img = QtGui.QImage(iconWidth,iconHeight,QtGui.QImage.Format_RGB32)
+        painter = QtGui.QPainter(img)
+        painter.fillRect(img.rect(), QtCore.Qt.lightGray)
+        rect = img.rect().adjusted(1,1,-1,-1)
+        self.plot_config_dialog = PlotConfigsDialog(img, painter, rect, iconSize, self.plot_win, self.plot_lines)
         self.plot_config_dialog.exec_()
 
     def subSettings(self, new=True):
@@ -938,6 +963,9 @@ class MainWindow(QMainWindow):
                 setattr(self, delay_spinBox, QSpinBox())
                 setattr(self, sleep_label, QLabel("Sleep %s (ns):" % letter))
                 setattr(self, sleep_spinBox, QSpinBox())
+
+                getattr(self, delay_spinBox).setToolTip("Press enter after editing with keyboard")
+                getattr(self, sleep_spinBox).setToolTip("Press enter after editing with keyboard")
 
                 getattr(self, delay_spinBox).setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
                 getattr(self, sleep_spinBox).setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
@@ -1221,11 +1249,25 @@ def softwareUpdate(splash):
 def run():
     from time import sleep
     global app
+    global dark_stylesheet 
+    global light_stylesheet 
 
     os.environ['PYQTGRAPH_QT_LIB'] = 'PyQt5'
 
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))  # <- Choose the style
+
+    # set stylesheet
+    file = QtCore.QFile("/home/selrahc/deleteme/AbacusSoftware/abacusSoftware/dark_stylesheet.qss")
+    file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+    stream = QtCore.QTextStream(file)
+    dark_stylesheet = stream.readAll()
+
+    file = QtCore.QFile("/home/selrahc/deleteme/AbacusSoftware/abacusSoftware/light_stylesheet.qss")
+    file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+    stream = QtCore.QTextStream(file)
+    light_stylesheet = stream.readAll()
+
+    #app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))  # <- Choose the style
 
     splash_pix = QtGui.QPixmap(':/splash.png').scaledToWidth(600)
     splash = QtWidgets.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)

@@ -4,10 +4,11 @@ from itertools import combinations
 
 try:
     from PyQt5 import QtWidgets, QtGui, QtCore
-    from PyQt5.QtGui import QTableWidgetItem
+    from PyQt5.QtGui import QTableWidgetItem, QBrush, QColor, QPixmap, QPen
     from PyQt5.QtWidgets import QSizePolicy, QTabWidget, QWidget, QCheckBox, \
                         QVBoxLayout, QFrame, QGroupBox, QLabel, QSizePolicy, \
-                        QComboBox, QSpinBox, QFormLayout, QDialog
+                        QComboBox, QSpinBox, QFormLayout, QDialog, QDialogButtonBox, \
+                        QColorDialog, QHBoxLayout
 except ModuleNotFoundError:
     from PyQt4 import QtWidgets, QtGui, QtCore
     from PyQt4.QtGui import QTableWidgetItem
@@ -341,10 +342,17 @@ class CurrentLabels(QtWidgets.QWidget):
 
     def createLabels(self, labels):
         self.removeLabels()
-        n_colors = len(constants.COLORS)
+        if not constants.IS_LIGHT_THEME:
+            nColors = len(constants.DARK_COLORS)
+        else:
+            nColors = len(constants.COLORS)
         for (i, name) in enumerate(labels):
             label = AutoSizeLabel(name, "0")
-            self.setColor(label, constants.COLORS[i % n_colors])
+            if not constants.IS_LIGHT_THEME:
+                color = constants.DARK_COLORS[i % nColors]
+            else:
+                color = constants.COLORS[i % nColors]
+            self.setColor(label, color)
             self.layout.addWidget(label)
             self.labels.append(label)
 
@@ -729,10 +737,169 @@ class ClickableLineEdit(QtGui.QLineEdit):
         QtGui.QLineEdit.mousePressEvent(self, event)
 
 class PlotConfigsDialog(QDialog):
-    def __init__(self, parent):
+    def __init__(self, img, painter, rect, iconSize, parent=None, active_channels_plotDataItems=None) :
         super(PlotConfigsDialog, self).__init__(parent)
 
+        self.setWindowTitle("Plot configuration")
+        self.active_plots = active_channels_plotDataItems
         self.parent = parent
+        self.colors = None
+        self.colors_names = None
+        self.img = img
+        self.painter = painter
+        self.rect = rect
+        self.channels_comboBoxes_colors = {}
+        self.unmodified_configuration = {}
+        self.markersize_spinbox = None
+        self.linewidth_spinbox = None
+
+        # Create comboBoxes for each channel that is currently active and 
+        # show available colors in each one
+
+        for plot in self.active_plots: 
+            if plot.opts['pen'] == type(QPen()):
+                self.channels_comboBoxes_colors[plot.opts['name']] = [plot.opts['name'], 
+                                                QComboBox(), plot.opts['pen'].color().name(), plot]
+                self.unmodified_configuration[plot.opts['name']] = [plot.opts['name'], 
+                                                QComboBox(), plot.opts['pen'].color().name(), plot]
+            else:
+                self.channels_comboBoxes_colors[plot.opts['name']] = [plot.opts['name'], 
+                                                QComboBox(), plot.opts['pen'], plot]
+                self.unmodified_configuration[plot.opts['name']] = [plot.opts['name'], 
+                                                QComboBox(), plot.opts['pen'], plot]
+
+        if not constants.IS_LIGHT_THEME:
+            self.colors = constants.DARK_COLORS
+            self.colors_names = constants.DARK_COLORS_NAMES
+        else: 
+            self.colors = constants.COLORS
+            self.colors_names = constants.COLORS_NAMES
+
+        for item in self.channels_comboBoxes_colors.values():
+            # item[1] is a QComboBox
+            item[1].setIconSize(iconSize)
+            for i,color in enumerate(self.colors):
+                item[1].addItem(self.colors_names[i])
+                self.painter.fillRect(self.img.rect(), QColor(color))
+                item[1].setItemData(i, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)
+                if color == item[2]: item[1].setCurrentIndex(i)
+                if type(item[2]) == type(QPen()):
+                    if color == item[2].color().name():
+                        item[1].setCurrentIndex(i)
+            item[1].addItem("Custom color")
+            item[1].currentIndexChanged.connect(self.updateComboBox)
+
+        # Put comboboxes in a GroupBox and add another groupbox for linewidth and markersize
+        self.colorsFormGroupBox = self.createColorGroupBox()
+        self.lineWidthMarkerFormGroupBox = self.createLineWidthMarkerSizeGroupBox()
+
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.colorsFormGroupBox)
+        self.layout.addWidget(self.lineWidthMarkerFormGroupBox)
+        self.layout.addWidget(self.buttonBox)
+
+        self.setLayout(self.layout)
+        painter.end()
+
+    def createColorGroupBox(self):
+        colorGroupBox = QGroupBox("Lines color")
+        single_widget = QWidget()
+        double_widget = QWidget()
+        multiple_widget = QWidget()
+
+        single_layout = QFormLayout()
+        double_layout = QFormLayout()
+        multiple_layout = QFormLayout()
         
-        self.exec()
+        for i, plot in enumerate(self.active_plots):
+            channel_name = plot.opts['name']
+            if len(channel_name) == 1:
+                single_layout.addRow(QLabel(self.channels_comboBoxes_colors[channel_name][0]), 
+                    self.channels_comboBoxes_colors[channel_name][1])
+            elif len(channel_name) == 2:
+                double_layout.addRow(QLabel(self.channels_comboBoxes_colors[channel_name][0]), 
+                    self.channels_comboBoxes_colors[channel_name][1])
+            else:
+                multiple_layout.addRow(QLabel(self.channels_comboBoxes_colors[channel_name][0]), 
+                    self.channels_comboBoxes_colors[channel_name][1])   
+
+        single_widget.setLayout(single_layout)
+        double_widget.setLayout(double_layout)
+        multiple_widget.setLayout(multiple_layout)
+
+        layout = QHBoxLayout()
+        layout.addWidget(single_widget)
+        layout.addWidget(double_widget)
+        layout.addWidget(multiple_widget)
+        colorGroupBox.setLayout(layout)
+        return colorGroupBox
+    
+    def createLineWidthMarkerSizeGroupBox(self):
+        self.markersize_spinbox = QtWidgets.QSpinBox()
+        self.linewidth_spinbox = QtWidgets.QSpinBox()
+        moreSettingsGroupBox = QGroupBox("More settings")
+        layout = QFormLayout()
+        layout.addRow(QLabel("Line width"), self.linewidth_spinbox)
+        layout.addRow(QLabel("Marker size"), self.markersize_spinbox)
+        self.markersize_spinbox.setValue(self.active_plots[0].opts['symbolSize'])
+        self.linewidth_spinbox.setValue(self.active_plots[0].opts['pen'].width())
+        moreSettingsGroupBox.setLayout(layout)
+        return moreSettingsGroupBox
+
+    def updateComboBox(self, val):
+        comboBox = self.sender()
+        color_selected = None
         
+        if comboBox.currentText() == "Custom color":
+            customColorPicker = QColorDialog()
+            customColorPicker.setOption(QColorDialog.DontUseNativeDialog)
+            customColorPicker.exec_()
+            color_selected = customColorPicker.currentColor().name()
+            comboBox.blockSignals(True)
+            self.painter = QtGui.QPainter(self.img)
+            self.painter.fillRect(self.rect, QColor(color_selected))
+            if comboBox.count()-1 > len(self.colors):
+                comboBox.setItemData(0, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)
+            else:
+                comboBox.insertItem(0, color_selected)
+                comboBox.setItemData(0, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)
+            comboBox.setCurrentIndex(0) 
+            comboBox.blockSignals(False)
+            self.painter.end()       
+        else:
+            if comboBox.count()-1 > len(self.colors):
+                color_selected = self.colors[val-1]
+            else: 
+                color_selected = self.colors[val]
+        
+        for channel in self.channels_comboBoxes_colors.values():
+            # channel[1] is a comboBox and channel[2] is its color
+            if channel[1] == comboBox:
+                #channel[2] = QPen(QColor(color_selected))
+                channel[2] = color_selected
+            #channel[2].setWidth(self.linewidth_spinbox.value())
+
+    def accept(self):
+        for i,channel in enumerate(self.channels_comboBoxes_colors.values()):
+            if type(channel[2]) == type(""):
+                linePen = QPen(QColor(channel[2]))
+                symbolPen = QPen(QColor(channel[2]))
+                channel[3].setSymbolBrush(channel[2])
+            else:
+                linePen = QPen(channel[2])
+                symbolPen = QPen(channel[2])
+                channel[3].setSymbolBrush(channel[2].color())
+            linePen.setWidth(self.linewidth_spinbox.value())
+            symbolPen.setWidth(1)
+            channel[3].setPen(linePen)
+            channel[3].setSymbolPen(symbolPen)
+            channel[3].setSymbolSize(self.markersize_spinbox.value())                
+        self.close()
+
+    #def cancel(self):
+    #    for channel in self.unmodified_configuration.values():
+    #        channel[3].setPen(channel[2])

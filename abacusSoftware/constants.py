@@ -40,8 +40,15 @@ CHECK_RATE = 250
 
 BUFFER_ROWS = 10000
 
-COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#8c564b",
-        "#e377c2", "#7f7f7f", "#bcdb22", "#14becf"]
+COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+        "#8c564b", "#e377c2", "#7f7f7f", "#bcdb22", "#14becf"]
+COLORS_NAMES = ['Blue', 'Orange', 'Green', 'Red', 'Purple', 
+        'Brown', 'Pink', 'Gray', 'Olive', 'Cyan'] # Names from Matplotlib
+
+DARK_COLORS = ["#ffffff", "#20fc03", "#feffcc", "#b4c4fd", "#b4fdB9", 
+        "#dcb4fd", "#03fcec", "#fc6467", "#e9e21c", "#fc03df"]
+DARK_COLORS_NAMES = ['White', 'Harlequin', 'Cream', 'Melrose', 'Reef', 
+        'Mauve', 'Aqua', 'Carnation', 'Sunflower', 'Pizzazz'] # Names from https://chir.ag/projects/name-that-color
 
 SYMBOLS = ['o', 's', 't', 't1', 't2', 't3', 'd', '+', 'x', 'p', 'h', 'star',
              'arrow_up', 'arrow_right', 'arrow_down', 'arrow_left', 'crosshair']
