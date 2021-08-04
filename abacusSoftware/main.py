@@ -9,6 +9,8 @@ import pyqtgraph as pg
 from datetime import datetime
 from itertools import combinations
 from time import time, localtime, strftime, sleep
+import qtmodern.styles
+import qtmodern.windows
 
 from serial.serialutil import SerialException, SerialTimeoutException
 
@@ -733,8 +735,7 @@ class MainWindow(QMainWindow):
     def setDarkTheme(self):
         constants.IS_LIGHT_THEME = False
         self.initPlots()
-        #self.plot_win.setBackground((25, 35, 45))
-        self.plot_win.setBackground((49, 54, 59))
+        self.plot_win.setBackground((42, 42, 42))
         whitePen = pg.mkPen(color=(255, 255, 255))
         self.counts_plot.getAxis('bottom').setPen(whitePen)
         self.counts_plot.getAxis('left').setPen(whitePen)
@@ -748,15 +749,13 @@ class MainWindow(QMainWindow):
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
 
-        #app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api=os.environ['PYQTGRAPH_QT_LIB']))
-        app.setStyleSheet(dark_stylesheet)
+        qtmodern.styles.dark(app)
 
     def setLightTheme(self):
         constants.IS_LIGHT_THEME = True
         self.initPlots()
         self.theme_action.setText('Dark theme')
-        app.setStyleSheet(light_stylesheet)
-        #app.setStyleSheet("")
+        qtmodern.styles.light(app)
 
         self.plot_win.setBackground(None)
         blackPen = pg.mkPen(color=(0, 0, 0))
@@ -1249,25 +1248,8 @@ def softwareUpdate(splash):
 def run():
     from time import sleep
     global app
-    global dark_stylesheet 
-    global light_stylesheet 
-
-    os.environ['PYQTGRAPH_QT_LIB'] = 'PyQt5'
 
     app = QtWidgets.QApplication(sys.argv)
-
-    # set stylesheet
-    file = QtCore.QFile("/home/selrahc/deleteme/AbacusSoftware/abacusSoftware/dark_stylesheet.qss")
-    file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-    stream = QtCore.QTextStream(file)
-    dark_stylesheet = stream.readAll()
-
-    file = QtCore.QFile("/home/selrahc/deleteme/AbacusSoftware/abacusSoftware/light_stylesheet.qss")
-    file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-    stream = QtCore.QTextStream(file)
-    light_stylesheet = stream.readAll()
-
-    #app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))  # <- Choose the style
 
     splash_pix = QtGui.QPixmap(':/splash.png').scaledToWidth(600)
     splash = QtWidgets.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
