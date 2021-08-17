@@ -738,11 +738,10 @@ class ClickableLineEdit(QtGui.QLineEdit):
 
 class PlotConfigsDialog(QDialog):
     def __init__(self, img, painter, rect, iconSize, parent=None, active_channels_plotDataItems=None) :
-        super(PlotConfigsDialog, self).__init__(parent)
+        super().__init__(parent)
 
         self.setWindowTitle("Plot configuration")
         self.active_plots = active_channels_plotDataItems
-        self.parent = parent
         self.colors = None
         self.colors_names = None
         self.img = img
@@ -886,10 +885,12 @@ class PlotConfigsDialog(QDialog):
     def accept(self):
         for i,channel in enumerate(self.channels_comboBoxes_colors.values()):
             if type(channel[2]) == type(""):
+                print('entra al if', channel[0])
                 linePen = QPen(QColor(channel[2]))
                 symbolPen = QPen(QColor(channel[2]))
                 channel[3].setSymbolBrush(channel[2])
             else:
+                print('entra al else', channel[0])
                 linePen = QPen(channel[2])
                 symbolPen = QPen(channel[2])
                 channel[3].setSymbolBrush(channel[2].color())
@@ -899,7 +900,3 @@ class PlotConfigsDialog(QDialog):
             channel[3].setSymbolPen(symbolPen)
             channel[3].setSymbolSize(self.markersize_spinbox.value())                
         self.close()
-
-    #def cancel(self):
-    #    for channel in self.unmodified_configuration.values():
-    #        channel[3].setPen(channel[2])

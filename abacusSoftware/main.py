@@ -224,6 +224,7 @@ class MainWindow(QMainWindow):
         self.statusBar = QtWidgets.QStatusBar(self)
         self.statusBar.setObjectName("statusBar")
         self.setStatusBar(self.statusBar)
+        self.statusBarMessage = None
 
         self.actionAbout = QAction('About', self)
         self.actionSave_as = QAction('Save as', self)
@@ -356,6 +357,9 @@ class MainWindow(QMainWindow):
 
                 if (self.sampling_widget.getValue() != samp):
                     self.sampling_widget.setValue(samp)
+
+                if self.statusBar.currentMessage() != abacus.getStatusMessage():
+                    self.statusBar.showMessage(abacus.getStatusMessage())
 
             except abacus.BaseError as e:
                 pass
@@ -653,7 +657,7 @@ class MainWindow(QMainWindow):
             nColors = len(constants.COLORS)
         nSymbols = len(constants.SYMBOLS)
         symbolSize = 8
-        linewidth = 1
+        linewidth = 2
         for i in range(len(self.active_channels)):
             if not constants.IS_LIGHT_THEME:
                 color = constants.DARK_COLORS[i % nColors]
@@ -661,8 +665,6 @@ class MainWindow(QMainWindow):
                 color = constants.COLORS[i % nColors]
             symbol = constants.SYMBOLS[i % nSymbols]
             letter = self.active_channels[i]
-            #pen = QtGui.QPen(QtGui.QColor(color))
-            #pen.setWidth(linewidth)
             pen = pg.mkPen(color, width=linewidth)
             plot = self.counts_plot.plot(pen=pen, symbol=symbol,
                                          symbolPen=color, symbolBrush=color,
@@ -787,6 +789,7 @@ class MainWindow(QMainWindow):
                     if self.data_ring != None:
                         self.data_ring.setFile(self.results_files.data_file)
                     self.statusBar.showMessage('Files: %s, %s.' % (names))
+                    self.statusBarMessage = self.statusBar.currentMessage()
                     try:
                         self.results_files.checkFilesExists()
                     except FileExistsError:
@@ -931,6 +934,26 @@ class MainWindow(QMainWindow):
         rect = img.rect().adjusted(1,1,-1,-1)
         self.plot_config_dialog = PlotConfigsDialog(img, painter, rect, iconSize, self.plot_win, self.plot_lines)
         self.plot_config_dialog.exec_()
+
+        new_plots_info = []
+        for line in self.plot_lines:
+            info = {'name': line.opts['name'], 
+                    'pen': line.opts['pen'].width(), 
+                    'symbol': line.opts['symbol'], 
+                    'symbolPen': line.opts['symbolPen'], 
+                    'symbolSize': line.opts['symbolSize'], 
+                    'symbolBrush': line.opts['symbolBrush']}
+            new_plots_info.append(info)
+
+        print(new_plots_info)
+
+        # self.counts_plot.clear()
+        # self.plot_lines = []
+        # for item in new_plots_info:
+        #     plot = self.counts_plot.plot(pen=item['pen'], symbol=item['symbol'],
+        #                                  symbolPen=item['symbolPen'], symbolBrush=item['symbolBrush'],
+        #                                  symbolSize=item['symbolSize'], name=item['name'])
+        #     self.plot_lines.append(plot)
 
     def subSettings(self, new=True):
         def fillFormLayout(layout, values, new=True):
