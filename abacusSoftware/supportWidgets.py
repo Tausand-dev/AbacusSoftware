@@ -135,7 +135,7 @@ class Tabs(QFrame):
         self.multiple = []
         if n_channels > 2:
             for i in range(3, n_channels + 1):
-                self.multiple += ["".join(pair) for pair in combinations(joined, i)]
+                self.multiple += ["".join(pair) for pair in combinations(joined, i) if len(pair) == 3 or len(pair) == 4]
 
         self.all = self.letters + self.double + self.multiple
 
