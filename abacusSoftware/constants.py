@@ -50,8 +50,7 @@ DARK_COLORS = ["#ffffff", "#20fc03", "#feffcc", "#b4c4fd", "#b4fdB9",
 DARK_COLORS_NAMES = ['White', 'Harlequin', 'Cream', 'Melrose', 'Reef', 
         'Mauve', 'Aqua', 'Carnation', 'Sunflower', 'Pizzazz'] # Names from https://chir.ag/projects/name-that-color
 
-SYMBOLS = ['o', 's', 't', 't1', 't2', 't3', 'd', '+', 'x', 'p', 'h', 'star',
-             'arrow_up', 'arrow_right', 'arrow_down', 'arrow_left', 'crosshair']
+SYMBOLS = ['o', 's', 't', 't1', 't2', 't3', 'd', '+', 'x', 'p', 'h', 'star']
 
 WIDGETS_NAMES = ["checkBox", "lineEdit", "comboBox", "spinBox"]
 WIDGETS_GET_ACTIONS = ["self.%s.isChecked()", "self.%s.text()", "self.%s.currentText()", "self.%s.value()"]
