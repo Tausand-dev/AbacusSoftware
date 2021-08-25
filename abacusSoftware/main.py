@@ -330,15 +330,27 @@ class MainWindow(QMainWindow):
     def checkParams(self):
         if self.port_name != None:
             try:
+                print("message", abacus.getStatusMessage())
+                if self.statusBar.currentMessage() != abacus.getStatusMessage():
+                    if abacus.getStatusMessage() != None and "down" in abacus.getStatusMessage():
+                        self.statusBar.setStyleSheet("QStatusBar{padding-left:8px;background:rgba(255,0,0,255);color:black;font-weight:bold;}")
+                        self.statusBar.showMessage(abacus.getStatusMessage())
+                    else:
+                        self.statusBar.setStyleSheet("")
+                        self.statusBar.showMessage(abacus.getStatusMessage())
+
                 settings = abacus.getAllSettings(self.port_name)
+                print(settings)
                 samp = int(settings.getSetting("sampling"))
                 coin = settings.getSetting("coincidence_window")
                 if self.number_channels == 4:
                     custom = settings.getSetting("config_custom_c1")
+                    print('custom 4ch', custom)
                     self.tabs_widget.setChecked(custom)
                 elif self.number_channels == 8:
                     for i in range(8):
                         custom = settings.getSetting("config_custom_c%d" % (i + 1))
+                        print('\ncustom 8ch', i+1, custom)
                         self.tabs_widget.setChecked(custom)
 
                 if self.coincidence_spinBox.value() != coin:
@@ -357,9 +369,6 @@ class MainWindow(QMainWindow):
 
                 if (self.sampling_widget.getValue() != samp):
                     self.sampling_widget.setValue(samp)
-
-                if self.statusBar.currentMessage() != abacus.getStatusMessage():
-                    self.statusBar.showMessage(abacus.getStatusMessage())
 
             except abacus.BaseError as e:
                 pass
@@ -529,6 +538,9 @@ class MainWindow(QMainWindow):
             if self.results_files != None:
                 self.results_files.writeParams("Disconnected from device in port,%s" % self.port_name)
             self.cleanPort()
+            self.statusBar.setStyleSheet("")
+            self.statusBar.showMessage("")
+            abacus.setStatusMessage("")
         else:
             self.connect_dialog = ConnectDialog()
             self.connect_dialog.refresh()
@@ -564,6 +576,9 @@ class MainWindow(QMainWindow):
             else:
                 self.connect_button.setText("Connect")
                 self.acquisition_button.setDisabled(True)
+                self.statusBar.setStyleSheet("")
+                self.statusBar.showMessage("")
+                abacus.setStatusMessage("")
 
     def delayMethod(self, widget, letter, val):
         widget.setKeyboardTracking(False)
@@ -707,6 +722,7 @@ class MainWindow(QMainWindow):
             pass
 
     def sendMultipleCoincidences(self, coincidences):
+        print('coincidences', coincidences)
         if self.port_name != None:
             try:
                 for (i, letters) in enumerate(coincidences):
@@ -714,6 +730,13 @@ class MainWindow(QMainWindow):
             except SerialException as e:
                 # except Exception as e:
                 self.errorWindow(e)
+
+    def getCustomSettingsNumber(self, letters):
+        settings = abacus.getAllSettings(self.port_name)
+        for i in range(8):
+            custom = settings.getSetting("config_custom_c%d" % (i + 1))
+            if letters == custom:
+                return i+1
 
     def sendSettings(self):
         self.samplingMethod(self.sampling_widget.getValue())
