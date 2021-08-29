@@ -330,14 +330,14 @@ class MainWindow(QMainWindow):
     def checkParams(self):
         if self.port_name != None:
             try:
-                print("message", abacus.getStatusMessage())
                 if self.statusBar.currentMessage() != abacus.getStatusMessage():
                     if abacus.getStatusMessage() != None and "down" in abacus.getStatusMessage():
-                        self.statusBar.setStyleSheet("QStatusBar{padding-left:8px;background:rgba(255,0,0,255);color:black;font-weight:bold;}")
+                        self.statusBar.setStyleSheet("QStatusBar{padding-left:8px;background:#d71d2a;color:black;}")
                         self.statusBar.showMessage(abacus.getStatusMessage())
                     else:
                         self.statusBar.setStyleSheet("")
                         self.statusBar.showMessage(abacus.getStatusMessage())
+                        self.sendMultipleCoincidences(self.tabs_widget.multiple_checked)
 
                 settings = abacus.getAllSettings(self.port_name)
                 print(settings)
@@ -345,12 +345,10 @@ class MainWindow(QMainWindow):
                 coin = settings.getSetting("coincidence_window")
                 if self.number_channels == 4:
                     custom = settings.getSetting("config_custom_c1")
-                    print('custom 4ch', custom)
                     self.tabs_widget.setChecked(custom)
                 elif self.number_channels == 8:
                     for i in range(8):
                         custom = settings.getSetting("config_custom_c%d" % (i + 1))
-                        print('\ncustom 8ch', i+1, custom)
                         self.tabs_widget.setChecked(custom)
 
                 if self.coincidence_spinBox.value() != coin:
@@ -722,7 +720,6 @@ class MainWindow(QMainWindow):
             pass
 
     def sendMultipleCoincidences(self, coincidences):
-        print('coincidences', coincidences)
         if self.port_name != None:
             try:
                 for (i, letters) in enumerate(coincidences):

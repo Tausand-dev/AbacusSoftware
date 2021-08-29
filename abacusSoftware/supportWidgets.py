@@ -4,11 +4,11 @@ from itertools import combinations
 
 try:
     from PyQt5 import QtWidgets, QtGui, QtCore
-    from PyQt5.QtGui import QTableWidgetItem, QBrush, QColor, QPixmap, QPen
+    from PyQt5.QtGui import QTableWidgetItem, QBrush, QColor, QPixmap, QPen, QIcon
     from PyQt5.QtWidgets import QSizePolicy, QTabWidget, QWidget, QCheckBox, \
                         QVBoxLayout, QFrame, QGroupBox, QLabel, QSizePolicy, \
                         QComboBox, QSpinBox, QFormLayout, QDialog, QDialogButtonBox, \
-                        QColorDialog, QHBoxLayout
+                        QColorDialog, QHBoxLayout, QGridLayout, QPushButton
 except ModuleNotFoundError:
     from PyQt4 import QtWidgets, QtGui, QtCore
     from PyQt4.QtGui import QTableWidgetItem
@@ -72,6 +72,21 @@ class SamplingWidget(object):
         if self.layout != None:
             self.layout.setWidget(0, QFormLayout.FieldRole, self.widget)
 
+class currentPlotButtons(QWidget):
+    def __init__(self, parent=None):
+        super(currentPlotButtons, self).__init__(parent=parent)
+        #self.layout = QGridLayout(self)
+        self.layout = QHBoxLayout(self)
+        self.currentWindowButton = QPushButton('')
+        self.currentWindowButton.setIcon(QIcon(':/Abacus_small.png'))
+        self.plotWindowButton = QPushButton('')
+        self.plotWindowButton.setIcon(QIcon(':/Abacus_small.png'))
+        #self.layout.addWidget(self.currentWindowButton, 0,3, QtCore.Qt.AlignRight)
+        #self.layout.addWidget(self.plotWindowButton, 0,4, QtCore.Qt.AlignRight)
+        self.layout.addWidget(self.currentWindowButton)
+        self.layout.addWidget(self.plotWindowButton)
+        self.setLayout(self.layout)
+
 class Tabs(QFrame):
     MAX_CHECKED_4CH = 1
     MAX_CHECKED_8CH = 8
@@ -94,8 +109,9 @@ class Tabs(QFrame):
         scrollArea3 = QtWidgets.QScrollArea()
         scrollArea3.setWidgetResizable(True)
 
-        self.single_tab = QGroupBox("Single")
-        self.single_tab.setCheckable(True)
+        self.single_tab = QGroupBox("")
+        self.single_tab.setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}")
+        #self.single_tab.setCheckable(True)
         self.single_tab.toggled.connect(self.onToggled)
         self.double_tab = QGroupBox("Double")
         self.double_tab.setCheckable(True)
@@ -106,12 +122,21 @@ class Tabs(QFrame):
         self.layout.setSpacing(3)
 
         self.single_tab_layout = QVBoxLayout(self.single_tab)
+        self.single_tab_layout.setSpacing(1)
         self.double_tab_layout = QVBoxLayout(self.double_tab)
+        self.double_tab_layout.setSpacing(1)
         self.multiple_tab_layout = QVBoxLayout(self.multiple_tab)
+        self.multiple_tab_layout.setSpacing(1)
 
         self.layout.addWidget(QLabel("<b>COUNTS</b>"))
+        self.layout.addWidget(QLabel("Single"))
+        self.layout.addWidget(currentPlotButtons())
         self.layout.addWidget(scrollArea1)
+        self.layout.addWidget(QLabel("Double"))
+        self.layout.addWidget(currentPlotButtons())
         self.layout.addWidget(scrollArea2)
+        self.layout.addWidget(QLabel("Multiple"))
+        self.layout.addWidget(currentPlotButtons())
         self.layout.addWidget(scrollArea3)
 
         scrollArea1.setWidget(self.single_tab)
@@ -120,7 +145,10 @@ class Tabs(QFrame):
 
     def createSingle(self, letter, layout):
         widget = QCheckBox(letter)
-        widget.setChecked(True)
+        if letter == 'A' or letter == 'B' or letter == 'AB':
+            widget.setChecked(True)
+        else:
+            widget.setChecked(False)
         setattr(self, letter, widget)
         layout.addWidget(widget)
         return widget
@@ -150,6 +178,9 @@ class Tabs(QFrame):
             widget.setChecked(False)
             widget.stateChanged.connect(self.signalMultiple)
 
+        if self.number_channels == 8:
+            setattr(self, '', QCheckBox())
+
     def deleteSingle(self, widget, layout):
         layout.removeWidget(widget)
         widget.deleteLater()
@@ -177,6 +208,12 @@ class Tabs(QFrame):
         multiple_checked = [letter for letter in self.multiple if getattr(self, letter).isChecked()]
         new = [m for m in multiple_checked if not m in self.multiple_checked]
 
+        if type(self.sender()) == type(QCheckBox()):
+            if not self.sender().isChecked() and self.number_channels == 8:
+                unchecked_letters = self.sender().text()
+                index_ = self.multiple_checked.index(unchecked_letters)
+                self.multiple_checked.pop(index_)
+
         if self.number_channels == 4: max = self.MAX_CHECKED_4CH
         elif self.number_channels == 8: max = self.MAX_CHECKED_8CH
 
@@ -186,7 +223,15 @@ class Tabs(QFrame):
         self.multiple_checked += new
         if len(new) and new != self.last_multiple_checked:
             self.last_multiple_checked = new
-            self.parent.sendMultipleCoincidences(new)
+            self.parent.sendMultipleCoincidences(self.multiple_checked)
+        if len(new) == 0  and self.number_channels == 8: # if len(new) == 0, then one checkbox in the multiple tab was unchecked
+            n_new_elements_in_multiple_checked = 0
+            for i in range(self.number_channels - len(self.multiple_checked)):
+                self.multiple_checked.append('')
+                n_new_elements_in_multiple_checked += 1
+            self.parent.sendMultipleCoincidences(self.multiple_checked)
+            self.multiple_checked = self.multiple_checked[:(self.number_channels - n_new_elements_in_multiple_checked)]
+
         self.signal()
 
     def setChecked(self, letters):
