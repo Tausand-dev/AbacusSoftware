@@ -8,7 +8,7 @@ try:
     from PyQt5.QtWidgets import QSizePolicy, QTabWidget, QWidget, QCheckBox, \
                         QVBoxLayout, QFrame, QGroupBox, QLabel, QSizePolicy, \
                         QComboBox, QSpinBox, QFormLayout, QDialog, QDialogButtonBox, \
-                        QColorDialog, QHBoxLayout, QGridLayout, QPushButton
+                        QColorDialog, QHBoxLayout, QGridLayout, QPushButton, QToolButton
 except ModuleNotFoundError:
     from PyQt4 import QtWidgets, QtGui, QtCore
     from PyQt4.QtGui import QTableWidgetItem
@@ -72,20 +72,157 @@ class SamplingWidget(object):
         if self.layout != None:
             self.layout.setWidget(0, QFormLayout.FieldRole, self.widget)
 
-class currentPlotButtons(QWidget):
-    def __init__(self, parent=None):
-        super(currentPlotButtons, self).__init__(parent=parent)
-        #self.layout = QGridLayout(self)
-        self.layout = QHBoxLayout(self)
-        self.currentWindowButton = QPushButton('')
-        self.currentWindowButton.setIcon(QIcon(':/Abacus_small.png'))
-        self.plotWindowButton = QPushButton('')
-        self.plotWindowButton.setIcon(QIcon(':/Abacus_small.png'))
-        #self.layout.addWidget(self.currentWindowButton, 0,3, QtCore.Qt.AlignRight)
-        #self.layout.addWidget(self.plotWindowButton, 0,4, QtCore.Qt.AlignRight)
-        self.layout.addWidget(self.currentWindowButton)
-        self.layout.addWidget(self.plotWindowButton)
+class currentPlotCheckboxLabelButtons(QWidget):
+    def __init__(self, label, parent=None):
+        super(currentPlotCheckboxLabelButtons, self).__init__(parent=parent)
+        self.parent = parent
+        self.layout = QGridLayout(self)
+
+        self.checkbox = QCheckBox()
+        self.checkbox.stateChanged.connect(self.updateCheckboxes)
+        self.label = QLabel(label)
+        self.currentWindowButton = QToolButton()
+        self.currentWindowButton.setCheckable(True)
+        self.currentWindowButton.setAutoRaise(True)
+        self.currentWindowButton.setToolTip("Show or hide current window")
+        self.currentWindowButton.clicked.connect(self.showHideCurrentWindow)
+        self.plotWindowButton = QToolButton()
+        self.plotWindowButton.setCheckable(True)
+        self.plotWindowButton.setAutoRaise(True)
+        self.plotWindowButton.setToolTip("Show or hide plot window")
+        self.plotWindowButton.clicked.connect(self.showHidePlotWindow)
+        self.updateButtonsIcons()
+        
+        if label == "Multiple": self.checkbox.setVisible(False)
+        self.layout.addWidget(self.checkbox, 0, 0)
+        self.layout.addWidget(self.label, 0, 1, 1, 2)
+        self.layout.addWidget(self.currentWindowButton, 0, 4)
+        self.layout.addWidget(self.plotWindowButton, 0, 5)
         self.setLayout(self.layout)
+
+    def showHideCurrentWindow(self):
+        label = self.label.text()
+        menu_action = None
+        main_window = self.parent.getParent()
+
+        for action in self.parent.getParent().menuView.actions():
+            if label.lower() in action.text() and "current" in action.text():
+                menu_action = action
+                break
+
+        if self.currentWindowButton.isChecked():
+            if label == "Single":
+                #main_window.mdi.addSubWindow(main_window.subwindow_current_single)
+                main_window.subwindow_current_single.show()
+                #for window in main_window.mdi.subWindowList():
+                #    print("trara", window.windowTitle())
+                    #main_window.mdi.activatePreviousSubWindow()
+                #    main_window.mdi.activateNextSubWindow()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(True)
+            elif label == "Double":
+                #main_window.mdi.addSubWindow(main_window.subwindow_current_double)
+                main_window.subwindow_current_double.show()
+                #for window in main_window.mdi.subWindowList():
+                #    print("trara", window.windowTitle())
+                    #main_window.mdi.activatePreviousSubWindow()
+                #    main_window.mdi.activateNextSubWindow()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(True)
+            elif label == "Multiple":
+                #main_window.mdi.addSubWindow(main_window.subwindow_current_multiple)
+                main_window.subwindow_current_multiple.show()
+                #for window in main_window.mdi.subWindowList():
+                #    print("trara", window.windowTitle())
+                    #main_window.mdi.activatePreviousSubWindow()
+                #    main_window.mdi.activateNextSubWindow()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(True)
+        elif not self.currentWindowButton.isChecked():
+            if label == "Single":
+                main_window.subwindow_current_single.hide()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(False)
+            elif label == "Double":
+                main_window.subwindow_current_double.hide()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(False)
+            elif label == "Multiple":
+                main_window.subwindow_current_multiple.hide()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(False)
+
+    def showHidePlotWindow(self):
+        label = self.label.text()
+        menu_action = None
+        main_window = self.parent.getParent()
+
+        for action in self.parent.getParent().menuView.actions():
+            if label.lower() in action.text() and "plots" in action.text():
+                menu_action = action
+                break
+
+        if self.plotWindowButton.isChecked():
+            if label == "Single":
+                #main_window.mdi.addSubWindow(main_window.subwindow_plots_single)
+                main_window.subwindow_plots_single.show()
+                #for window in main_window.mdi.subWindowList():
+                #    print("trara", window.windowTitle())
+                    #main_window.mdi.activatePreviousSubWindow()
+                #    main_window.mdi.activateNextSubWindow()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(True)
+            elif label == "Double":
+                #main_window.mdi.addSubWindow(main_window.subwindow_plots_double)
+                main_window.subwindow_plots_double.show()
+                #for window in main_window.mdi.subWindowList():
+                #    print("trara", window.windowTitle())
+                    #main_window.mdi.activatePreviousSubWindow()
+                #    main_window.mdi.activateNextSubWindow()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(True)
+            elif label == "Multiple":
+                #main_window.mdi.addSubWindow(main_window.subwindow_plots_multiple)
+                main_window.subwindow_plots_multiple.show()
+                #for window in main_window.mdi.subWindowList():
+                #    print("trara", window.windowTitle())
+                    #main_window.mdi.activatePreviousSubWindow()
+                #    main_window.mdi.activateNextSubWindow()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(True)
+        elif not self.plotWindowButton.isChecked():
+            if label == "Single":
+                main_window.subwindow_plots_single.hide()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(False)
+            elif label == "Double":
+                main_window.subwindow_plots_double.hide()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(False)
+            elif label == "Multiple":
+                main_window.subwindow_plots_multiple.hide()
+                main_window.mdi.tileSubWindows()
+                menu_action.setChecked(False)
+
+    def updateButtonsIcons(self):
+        if constants.IS_LIGHT_THEME:
+            self.currentWindowButton.setIcon(QIcon(':/current_icon.png'))
+            self.plotWindowButton.setIcon(QIcon(':/plot_icon.png'))
+        else:
+            self.currentWindowButton.setIcon(QIcon(':/current_icon_dark.png'))
+            self.plotWindowButton.setIcon(QIcon(':/plot_icon_dark.png'))
+
+    def updateCheckboxes(self, check_state):
+        if self.label.text() == "Single":
+            letters = self.parent.letters
+        elif self.label.text() == "Double":
+            letters = self.parent.double
+        for letter in letters:
+            checkbox = getattr(self.parent, letter)
+            if check_state == QtCore.Qt.Checked: 
+                checkbox.setChecked(True)
+            elif check_state == QtCore.Qt.Unchecked:
+                checkbox.setChecked(False)
 
 class Tabs(QFrame):
     MAX_CHECKED_4CH = 1
@@ -109,48 +246,75 @@ class Tabs(QFrame):
         scrollArea3 = QtWidgets.QScrollArea()
         scrollArea3.setWidgetResizable(True)
 
-        self.single_tab = QGroupBox("")
+        self.single_tab = QGroupBox()
         self.single_tab.setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}")
-        #self.single_tab.setCheckable(True)
-        self.single_tab.toggled.connect(self.onToggled)
-        self.double_tab = QGroupBox("Double")
-        self.double_tab.setCheckable(True)
-        self.double_tab.toggled.connect(self.onToggled)
-        self.multiple_tab = QGroupBox("Multiple")
+        self.double_tab = QGroupBox()
+        self.double_tab.setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}")
+        self.multiple_tab = QGroupBox()
+        self.multiple_tab.setStyleSheet("QGroupBox{padding-top:15px; margin-top:-15px}")
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(3)
 
-        self.single_tab_layout = QVBoxLayout(self.single_tab)
+        self.single_tab_layout = QGridLayout(self.single_tab)
         self.single_tab_layout.setSpacing(1)
-        self.double_tab_layout = QVBoxLayout(self.double_tab)
+        self.double_tab_layout = QGridLayout(self.double_tab)
         self.double_tab_layout.setSpacing(1)
-        self.multiple_tab_layout = QVBoxLayout(self.multiple_tab)
+        self.multiple_tab_layout = QGridLayout(self.multiple_tab)
         self.multiple_tab_layout.setSpacing(1)
 
-        self.layout.addWidget(QLabel("<b>COUNTS</b>"))
-        self.layout.addWidget(QLabel("Single"))
-        self.layout.addWidget(currentPlotButtons())
+        self.single_tab_top = currentPlotCheckboxLabelButtons("Single",self)
+        self.double_tab_top = currentPlotCheckboxLabelButtons("Double",self)
+        self.multiple_tab_top = currentPlotCheckboxLabelButtons("Multiple",self)
+
+        self.buttons_widget = QWidget()
+        self.buttons_widget_layout = QHBoxLayout(self.buttons_widget)
+        self.btn_all_currents_subwindow = QPushButton("Current")
+        self.btn_all_currents_subwindow.setCheckable(True)
+        self.btn_all_currents_subwindow.setFlat(True)
+        self.btn_all_currents_subwindow.setMinimumSize(self.btn_all_currents_subwindow.minimumSizeHint())
+        self.btn_all_currents_subwindow.clicked.connect(self.onToggledCurrent)
+        self.btn_all_plots_subwindow = QPushButton("Plots")
+        self.btn_all_plots_subwindow.setCheckable(True)
+        self.btn_all_plots_subwindow.setFlat(True)
+        self.btn_all_plots_subwindow.clicked.connect(self.onToggledPlots)
+
+        self.buttons_widget_layout.addWidget(self.btn_all_currents_subwindow)
+        self.buttons_widget_layout.addWidget(self.btn_all_plots_subwindow)
+
+        self.layout.addWidget(self.buttons_widget)
+        self.layout.addWidget(self.single_tab_top)
         self.layout.addWidget(scrollArea1)
-        self.layout.addWidget(QLabel("Double"))
-        self.layout.addWidget(currentPlotButtons())
+        self.layout.addWidget(self.double_tab_top)
         self.layout.addWidget(scrollArea2)
-        self.layout.addWidget(QLabel("Multiple"))
-        self.layout.addWidget(currentPlotButtons())
+        self.layout.addWidget(self.multiple_tab_top)
         self.layout.addWidget(scrollArea3)
 
         scrollArea1.setWidget(self.single_tab)
         scrollArea2.setWidget(self.double_tab)
         scrollArea3.setWidget(self.multiple_tab)
 
-    def createSingle(self, letter, layout):
+    def createSingle(self, letter, layout, letters):
         widget = QCheckBox(letter)
         if letter == 'A' or letter == 'B' or letter == 'AB':
             widget.setChecked(True)
         else:
             widget.setChecked(False)
         setattr(self, letter, widget)
-        layout.addWidget(widget)
+        if len(letter) == 1:
+            n_widgets_created = len(self.single_tab.findChildren(QCheckBox))
+        elif len(letter) == 2:
+            n_widgets_created = len(self.double_tab.findChildren(QCheckBox))
+        elif len(letter) == 3 or len(letter) == 4:
+            n_widgets_created = len(self.multiple_tab.findChildren(QCheckBox))
+ 
+        if n_widgets_created < len(letters)/2:
+            row = n_widgets_created
+            layout.addWidget(widget, row, 0)
+        else:
+            row = n_widgets_created-len(letters)/2
+            layout.addWidget(widget, row, 1)
+
         return widget
 
     def setNumberChannels(self, n_channels):
@@ -168,13 +332,13 @@ class Tabs(QFrame):
         self.all = self.letters + self.double + self.multiple
 
         for letter in self.letters:
-            widget = self.createSingle(letter, self.single_tab_layout)
+            widget = self.createSingle(letter, self.single_tab_layout, self.letters)
             widget.stateChanged.connect(self.signal)
         for letter in self.double:
-            widget = self.createSingle(letter, self.double_tab_layout)
+            widget = self.createSingle(letter, self.double_tab_layout, self.double)
             widget.stateChanged.connect(self.signal)
         for letter in self.multiple:
-            widget = self.createSingle(letter, self.multiple_tab_layout)
+            widget = self.createSingle(letter, self.multiple_tab_layout, self.multiple)
             widget.setChecked(False)
             widget.stateChanged.connect(self.signalMultiple)
 
@@ -241,10 +405,50 @@ class Tabs(QFrame):
             getattr(self, letters).setChecked(True)
             self.last_multiple_checked = letters
 
-    def onToggled(self, on):
-        for box in self.sender().findChildren(QtWidgets.QCheckBox):
-            box.setChecked(on)
-            box.setEnabled(True)
+    def changeButtonsIcons(self):
+        self.single_tab_top.updateButtonsIcons()
+        self.double_tab_top.updateButtonsIcons()
+        self.multiple_tab_top.updateButtonsIcons()
+
+        if constants.IS_LIGHT_THEME:
+            self.btn_all_currents_subwindow.setIcon(QIcon(':/current_icon.png'))
+            self.btn_all_plots_subwindow.setIcon(QIcon(':/plot_icon.png'))
+        else:
+            self.btn_all_currents_subwindow.setIcon(QIcon(':/current_icon_dark.png'))
+            self.btn_all_plots_subwindow.setIcon(QIcon(':/plot_icon_dark.png'))
+
+    def onToggledCurrent(self):
+        for action in self.parent.menuView.actions():
+            if "Show current" in action.text():
+                menu_action = action
+                break
+        if self.btn_all_currents_subwindow.isChecked():
+            self.parent.subwindow_current.show()
+            action.setChecked(True)
+        else:
+            self.parent.subwindow_current.hide()
+            action.setChecked(False)
+        self.parent.mdi.tileSubWindows()
+
+    def onToggledPlots(self):
+        for action in self.parent.menuView.actions():
+            if "Show plots" in action.text():
+                menu_action = action
+                break
+        if self.btn_all_plots_subwindow.isChecked():
+            self.parent.subwindow_plots.show()
+            action.setChecked(True)
+        else:
+            self.parent.subwindow_plots.hide()
+            action.setChecked(False)
+        self.parent.mdi.tileSubWindows()
+
+    def updateBtnsStatus(self):
+        if self.parent.subwindow_current.isVisible(): self.btn_all_currents_subwindow.setChecked(True)
+        if self.parent.subwindow_plots.isVisible(): self.btn_all_plots_subwindow.setChecked(True)
+
+    def getParent(self):
+        return self.parent
 
 class Table(QtWidgets.QTableWidget):
     def __init__(self, active_labels, active_indexes):
@@ -770,6 +974,19 @@ class SubWindow(QtWidgets.QMdiSubWindow):
         actions = self.parent.menuView.actions()
         for action in actions:
             if name in action.text(): action.setChecked(False)
+        if "Current single".lower() == name:
+            self.parent.tabs_widget.single_tab_top.currentWindowButton.setChecked(False)
+        elif "Current double".lower() == name:
+            self.parent.tabs_widget.double_tab_top.currentWindowButton.setChecked(False)
+        elif "Current multiple".lower() == name:
+            self.parent.tabs_widget.multiple_tab_top.currentWindowButton.setChecked(False)
+        if "Plots single".lower() == name:
+            self.parent.tabs_widget.single_tab_top.plotWindowButton.setChecked(False)
+        elif "Plots double".lower() == name:
+            self.parent.tabs_widget.double_tab_top.plotWindowButton.setChecked(False)
+        elif "Plots multiple".lower() == name:
+            self.parent.tabs_widget.multiple_tab_top.plotWindowButton.setChecked(False)
+        self.parent.mdi.tileSubWindows()
 
 class ClickableLineEdit(QtGui.QLineEdit):
     clicked = QtCore.pyqtSignal()

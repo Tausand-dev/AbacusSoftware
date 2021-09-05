@@ -58,6 +58,9 @@ class MainWindow(QMainWindow):
         self.start_position = None
         self.number_channels = 0
         self.active_channels = []
+        self.active_channels_single = []
+        self.active_channels_double = []
+        self.active_channels_multiple = []
         constants.IS_LIGHT_THEME = True
         widget = QWidget()
 
@@ -99,7 +102,7 @@ class MainWindow(QMainWindow):
         self.clear_button.setMaximumSize(QtCore.QSize(140, 60))
         layout2.addWidget(self.clear_button)
 
-        layout.addWidget(frame2)
+        #layout.addWidget(frame2)
 
         frame3 = QFrame()
         layout3 = QHBoxLayout(frame3)
@@ -111,17 +114,24 @@ class MainWindow(QMainWindow):
         self.tabs_widget = Tabs(self)
         toolbar_frame_layout.addWidget(self.tabs_widget)
         toolbar_frame.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Expanding)
-        toolbar_frame.setMinimumWidth(120)
-        toolbar_frame.setMaximumWidth(150)
+        toolbar_frame.setMinimumWidth(185)
+        toolbar_frame.setMaximumWidth(195)
 
         layout3.addWidget(toolbar_frame)
         layout3.setContentsMargins(0, 0, 0, 0)
         layout3.setSpacing(0)
 
+        frame4 = QFrame()
+        layout4 = QVBoxLayout(frame4)
+        layout4.addWidget(frame2)
+
         self.mdi = QMdiArea(frame3)
         self.mdi.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        layout3.addWidget(self.mdi)
+        #layout3.addWidget(self.mdi)
+        layout4.addWidget(self.mdi)
         self.setCentralWidget(widget)
+
+        layout3.addWidget(frame4)
 
         """
         settings
@@ -131,11 +141,29 @@ class MainWindow(QMainWindow):
         self.sleep_widgets = []
         self.subSettings_delays_sleeps = []
 
+        self.subPlotsMultiple()
+        self.subwindow_plots_multiple.hide()
+
+        self.subPlotsDouble()
+        self.subwindow_plots_double.hide()
+
+        self.subPlotsSingle()
+        self.subwindow_plots_single.hide()
+
         self.subPlots()
-        self.subwindow_plots.show()
+        self.subwindow_plots.show()  
 
         self.subHistorical()
         self.subwindow_historical.show()
+
+        self.subCurrentMultiple()
+        self.subwindow_current_multiple.hide()
+        
+        self.subCurrentDouble()
+        self.subwindow_current_double.hide()
+
+        self.subCurrentSingle()
+        self.subwindow_current_single.hide()
 
         self.subCurrent()
         self.subwindow_current.show()
@@ -158,7 +186,7 @@ class MainWindow(QMainWindow):
         self.last_valid_value_coincidence_window = abacus.constants.COINCIDENCE_WINDOW_DEFAULT_VALUE
 
         """
-        Plot
+        Plots
         """
         self.plot_lines = []
         self.legend = None
@@ -166,6 +194,28 @@ class MainWindow(QMainWindow):
         self.counts_plot.setLabel('left', "Counts")
         self.counts_plot.setLabel('bottom', "Time", units='s')
 
+        self.plot_lines_single = []
+        self.legend_single = None
+        self.counts_plot_single = self.plot_win_single.addPlot()
+        self.counts_plot_single.setLabel('left', "Counts")
+        self.counts_plot_single.setLabel('bottom', "Time", units='s')
+
+        self.plot_lines_double = []
+        self.legend_double = None
+        self.counts_plot_double = self.plot_win_double.addPlot()
+        self.counts_plot_double.setLabel('left', "Counts")
+        self.counts_plot_double.setLabel('bottom', "Time", units='s')
+
+        self.plot_lines_multiple = []
+        self.legend_multiple = None
+        self.counts_plot_multiple = self.plot_win_multiple.addPlot()
+        self.counts_plot_multiple.setLabel('left', "Counts")
+        self.counts_plot_multiple.setLabel('bottom', "Time", units='s')
+
+
+        """
+        Timers
+        """
         self.refresh_timer = QtCore.QTimer()
         self.refresh_timer.setInterval(constants.DATA_REFRESH_RATE)
         self.refresh_timer.timeout.connect(self.updateWidgets)
@@ -239,8 +289,16 @@ class MainWindow(QMainWindow):
 
         self.menuView.addAction(QAction("Show settings", self.menuView, checkable=True))
         self.menuView.addAction(QAction("Show historical", self.menuView, checkable=True))
+        self.menuView.addSeparator()
         self.menuView.addAction(QAction("Show current", self.menuView, checkable=True))
+        self.menuView.addAction(QAction("Show current single", self.menuView, checkable=True))
+        self.menuView.addAction(QAction("Show current double", self.menuView, checkable=True))
+        self.menuView.addAction(QAction("Show current multiple", self.menuView, checkable=True))
+        self.menuView.addSeparator()
         self.menuView.addAction(QAction("Show plots", self.menuView, checkable=True))
+        self.menuView.addAction(QAction("Show plots single", self.menuView, checkable=True))
+        self.menuView.addAction(QAction("Show plots double", self.menuView, checkable=True))
+        self.menuView.addAction(QAction("Show plots multiple", self.menuView, checkable=True))
         self.menuView.addSeparator()
         self.menuView.addAction("Tiled")
         self.menuView.addAction("Cascade")
@@ -248,7 +306,10 @@ class MainWindow(QMainWindow):
         self.theme_action = self.menuView.addAction("Dark theme")
 
         for action in self.menuView.actions():
-            if action.isCheckable(): action.setChecked(True)
+            action_should_be_initially_hidden = action.text() in ["Show current single", "Show current double", 
+                    "Show current multiple", "Show plots single", "Show plots double", "Show plots multiple"]
+            if action.isCheckable() and not action_should_be_initially_hidden: 
+                action.setChecked(True)
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuProperties.menuAction())
@@ -281,13 +342,32 @@ class MainWindow(QMainWindow):
         self.setSettings()
         self.updateConstants()
 
+        #self.mdi.setActivationOrder(QMdiArea.StackingOrder)
+        #self.mdi.setActivationOrder(QMdiArea.ActivationHistoryOrder)
+
     def aboutWindowCaller(self):
         self.about_window.show()
 
     def activeChannelsChanged(self, actives):
+        self.active_channels_single = []
+        self.active_channels_double = []
+        self.active_channels_multiple = []
         self.active_channels = actives
+
+        for channel in actives:
+            if len(channel) == 1:
+                self.active_channels_single.append(channel)
+            elif len(channel) == 2:
+                self.active_channels_double.append(channel)
+            elif len(channel) == 3 or len(channel) == 4:
+                self.active_channels_multiple.append(channel)
+
+        print('activeChannelsChanged')
         self.initPlots()
         self.current_labels.createLabels(self.active_channels)
+        self.current_labels_single.createLabels(self.active_channels_single)
+        self.current_labels_double.createLabels(self.active_channels_double)
+        self.current_labels_multiple.createLabels(self.active_channels_multiple)
         self.combination_indexes = [i for (i, com) in enumerate(self.combinations) if com in self.active_channels]
 
         "Clear table"
@@ -328,6 +408,12 @@ class MainWindow(QMainWindow):
             raise ExtentionError()
 
     def checkParams(self):
+        # print('\n###########################')
+        # for subwindow in self.mdi.subWindowList():
+        #     print(subwindow.windowTitle())
+        # print('mdiActivationOrder',self.mdi.activationOrder())
+        # print('***************************\n')
+        print(len(self.plot_lines))
         if self.port_name != None:
             try:
                 if self.statusBar.currentMessage() != abacus.getStatusMessage():
@@ -340,7 +426,6 @@ class MainWindow(QMainWindow):
                         self.sendMultipleCoincidences(self.tabs_widget.multiple_checked)
 
                 settings = abacus.getAllSettings(self.port_name)
-                print(settings)
                 samp = int(settings.getSetting("sampling"))
                 coin = settings.getSetting("coincidence_window")
                 if self.number_channels == 4:
@@ -578,6 +663,8 @@ class MainWindow(QMainWindow):
                 self.statusBar.showMessage("")
                 abacus.setStatusMessage("")
 
+        self.tabs_widget.updateBtnsStatus()
+
     def delayMethod(self, widget, letter, val):
         widget.setKeyboardTracking(False)
 
@@ -636,14 +723,42 @@ class MainWindow(QMainWindow):
             for action in self.menuView.actions():
                 if text == action.text():
                     text = text[5:]
-                    check = not action.isChecked()
-                    subwindow = getattr(self, "subwindow_%s" % text)
+                    if "current" in text and ("single" in text or "double" in text or "multiple" in text):
+                        text_complement = text[8:]
+                        subwindow = getattr(self, "subwindow_current_%s" % text_complement)
+                        if "single" in text:
+                            button = self.tabs_widget.single_tab_top.currentWindowButton
+                        elif "double" in text:
+                            button = self.tabs_widget.double_tab_top.currentWindowButton
+                        elif "multiple" in text:
+                            button = self.tabs_widget.multiple_tab_top.currentWindowButton
+                    elif "plots" in text and ("single" in text or "double" in text or "multiple" in text):
+                        text_complement = text[6:]
+                        subwindow = getattr(self, "subwindow_plots_%s" % text_complement)
+                        if "single" in text:
+                            button = self.tabs_widget.single_tab_top.plotWindowButton
+                        elif "double" in text:
+                            button = self.tabs_widget.double_tab_top.plotWindowButton
+                        elif "multiple" in text:
+                            button = self.tabs_widget.multiple_tab_top.plotWindowButton  
+                    else:
+                        subwindow = getattr(self, "subwindow_%s" % text)
+
+                    if subwindow == self.subwindow_current: button = self.tabs_widget.btn_all_currents_subwindow
+                    elif subwindow == self.subwindow_plots: button = self.tabs_widget.btn_all_plots_subwindow
+                    
+                    check = not action.isChecked() 
                     if check:
                         action.setChecked(False)
                         subwindow.hide()
+                        self.mdi.tileSubWindows()
+                        if button.isCheckable(): button.setChecked(False)
                     else:
                         action.setChecked(True)
+                        if subwindow not in self.mdi.subWindowList(): self.mdi.addSubWindow(subwindow)
                         subwindow.show()
+                        self.mdi.tileSubWindows()
+                        if button.isCheckable(): button.setChecked(True)
 
         elif text == "Cascade":
             self.mdi.cascadeSubWindows()
@@ -663,6 +778,7 @@ class MainWindow(QMainWindow):
 
     def initPlots(self):
         self.removePlots()
+        print("lines", len(self.plot_lines))
         self.legend = self.counts_plot.addLegend()
         if not constants.IS_LIGHT_THEME:
             nColors = len(constants.DARK_COLORS)
@@ -684,14 +800,63 @@ class MainWindow(QMainWindow):
                                          symbolSize=symbolSize, name=letter)
             self.plot_lines.append(plot)
 
+        for i in range(len(self.active_channels_single)):
+            if not constants.IS_LIGHT_THEME:
+                color = constants.DARK_COLORS[i % nColors]
+            else:
+                color = constants.COLORS[i % nColors]
+            symbol = constants.SYMBOLS[i % nSymbols]
+            letter = self.active_channels_single[i]
+            pen = pg.mkPen(color, width=linewidth)
+            plot = self.counts_plot_single.plot(pen=pen, symbol=symbol,
+                                         symbolPen=color, symbolBrush=color,
+                                         symbolSize=symbolSize, name=letter)
+            self.plot_lines_single.append(plot)
+
+        for i in range(len(self.active_channels_double)):
+            if not constants.IS_LIGHT_THEME:
+                color = constants.DARK_COLORS[i % nColors]
+            else:
+                color = constants.COLORS[i % nColors]
+            symbol = constants.SYMBOLS[i % nSymbols]
+            letter = self.active_channels_double[i]
+            pen = pg.mkPen(color, width=linewidth)
+            plot = self.counts_plot_double.plot(pen=pen, symbol=symbol,
+                                         symbolPen=color, symbolBrush=color,
+                                         symbolSize=symbolSize, name=letter)
+            self.plot_lines_double.append(plot)
+
+        for i in range(len(self.active_channels_multiple)):
+            if not constants.IS_LIGHT_THEME:
+                color = constants.DARK_COLORS[i % nColors]
+            else:
+                color = constants.COLORS[i % nColors]
+            symbol = constants.SYMBOLS[i % nSymbols]
+            letter = self.active_channels_multiple[i]
+            pen = pg.mkPen(color, width=linewidth)
+            plot = self.counts_plot_multiple.plot(pen=pen, symbol=symbol,
+                                         symbolPen=color, symbolBrush=color,
+                                         symbolSize=symbolSize, name=letter)
+            self.plot_lines_multiple.append(plot)
+
     def removePlots(self):
-        if self.legend != None:
-            if self.legend.scene() != None:  #new on v1.4.0 (2020-06-23). This solves the issue of not reconnecting to a device after disconnection.
-                self.legend.scene().removeItem(self.legend)
+        print('removePlots', self.legend)
+        #if self.legend != None:
+        #    if self.legend.scene() != None:  #new on v1.4.0 (2020-06-23). This solves the issue of not reconnecting to a device after disconnection.
+        #        self.legend.scene().removeItem(self.legend)
         for line in self.plot_lines:
             line.clear()
+        for line in self.plot_lines_single: line.clear()
+        for line in self.plot_lines_double: line.clear()
+        for line in self.plot_lines_multiple: line.clear()
         self.plot_lines = []
+        self.plot_lines_single = []
+        self.plot_lines_double = []
+        self.plot_lines_multiple = []
         self.legend = None
+        self.legend_single = None
+        self.legend_double = None
+        self.legend_multiple = None
 
     def samplingMethod(self, value, force_write=False):
         if self.sampling_widget != None:
@@ -756,13 +921,33 @@ class MainWindow(QMainWindow):
 
     def setDarkTheme(self):
         constants.IS_LIGHT_THEME = False
+        print('setDarkTheme antes de initPlots')
         self.initPlots()
         self.plot_win.setBackground((42, 42, 42))
+        self.plot_win_single.setBackground((42, 42, 42))
+        self.plot_win_double.setBackground((42, 42, 42))
+        self.plot_win_multiple.setBackground((42, 42, 42))
         whitePen = pg.mkPen(color=(255, 255, 255))
         self.counts_plot.getAxis('bottom').setPen(whitePen)
         self.counts_plot.getAxis('left').setPen(whitePen)
         self.counts_plot.getAxis('bottom').setTextPen(whitePen)
         self.counts_plot.getAxis('left').setTextPen(whitePen)
+
+        self.counts_plot_single.getAxis('bottom').setPen(whitePen)
+        self.counts_plot_single.getAxis('left').setPen(whitePen)
+        self.counts_plot_single.getAxis('bottom').setTextPen(whitePen)
+        self.counts_plot_single.getAxis('left').setTextPen(whitePen)
+
+        self.counts_plot_double.getAxis('bottom').setPen(whitePen)
+        self.counts_plot_double.getAxis('left').setPen(whitePen)
+        self.counts_plot_double.getAxis('bottom').setTextPen(whitePen)
+        self.counts_plot_double.getAxis('left').setTextPen(whitePen)
+
+        self.counts_plot_multiple.getAxis('bottom').setPen(whitePen)
+        self.counts_plot_multiple.getAxis('left').setPen(whitePen)
+        self.counts_plot_multiple.getAxis('bottom').setTextPen(whitePen)
+        self.counts_plot_multiple.getAxis('left').setTextPen(whitePen)
+
         self.theme_action.setText('Light theme')
         self.delaySweepDialog.setDarkTheme()
         self.sleepSweepDialog.setDarkTheme()
@@ -771,20 +956,54 @@ class MainWindow(QMainWindow):
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
 
+        self.current_labels_single.createLabels(self.active_channels_single)
+        self.current_labels_single.clearSizes()
+        self.current_labels_single.resizeEvent(None)
+
+        self.current_labels_double.createLabels(self.active_channels_double)
+        self.current_labels_double.clearSizes()
+        self.current_labels_double.resizeEvent(None)
+
+        self.current_labels_multiple.createLabels(self.active_channels_multiple)
+        self.current_labels_multiple.clearSizes()
+        self.current_labels_multiple.resizeEvent(None)
+
+        self.tabs_widget.changeButtonsIcons()
+        self.mdi.setBackground(QtGui.QBrush(QtGui.QColor("#353535")))
+
         qtmodern.styles.dark(app)
 
     def setLightTheme(self):
         constants.IS_LIGHT_THEME = True
+        print('setLightTheme')
         self.initPlots()
         self.theme_action.setText('Dark theme')
         qtmodern.styles.light(app)
 
         self.plot_win.setBackground(None)
+        self.plot_win_single.setBackground(None)
+        self.plot_win_double.setBackground(None)
+        self.plot_win_multiple.setBackground(None)
         blackPen = pg.mkPen(color=(0, 0, 0))
         self.counts_plot.getAxis('bottom').setPen(blackPen)
         self.counts_plot.getAxis('left').setPen(blackPen)
         self.counts_plot.getAxis('bottom').setTextPen(blackPen)
         self.counts_plot.getAxis('left').setTextPen(blackPen)
+
+        self.counts_plot_single.getAxis('bottom').setPen(blackPen)
+        self.counts_plot_single.getAxis('left').setPen(blackPen)
+        self.counts_plot_single.getAxis('bottom').setTextPen(blackPen)
+        self.counts_plot_single.getAxis('left').setTextPen(blackPen)
+
+        self.counts_plot_double.getAxis('bottom').setPen(blackPen)
+        self.counts_plot_double.getAxis('left').setPen(blackPen)
+        self.counts_plot_double.getAxis('bottom').setTextPen(blackPen)
+        self.counts_plot_double.getAxis('left').setTextPen(blackPen)
+
+        self.counts_plot_multiple.getAxis('bottom').setPen(blackPen)
+        self.counts_plot_multiple.getAxis('left').setPen(blackPen)
+        self.counts_plot_multiple.getAxis('bottom').setTextPen(blackPen)
+        self.counts_plot_multiple.getAxis('left').setTextPen(blackPen)
 
         self.delaySweepDialog.setLightTheme()
         self.sleepSweepDialog.setLightTheme()
@@ -792,6 +1011,21 @@ class MainWindow(QMainWindow):
         self.current_labels.createLabels(self.active_channels)
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
+
+        self.current_labels_single.createLabels(self.active_channels_single)
+        self.current_labels_single.clearSizes()
+        self.current_labels_single.resizeEvent(None)
+
+        self.current_labels_double.createLabels(self.active_channels_double)
+        self.current_labels_double.clearSizes()
+        self.current_labels_double.resizeEvent(None)
+
+        self.current_labels_multiple.createLabels(self.active_channels_multiple)
+        self.current_labels_multiple.clearSizes()
+        self.current_labels_multiple.resizeEvent(None)
+
+        self.tabs_widget.changeButtonsIcons()
+        self.mdi.setBackground(QtGui.QBrush(QtGui.QColor("#f0f0f0")))
 
     def setSaveAs(self):
         new_file_name = self.save_as_lineEdit.text()
@@ -911,6 +1145,30 @@ class MainWindow(QMainWindow):
         self.subwindow_current.setWindowTitle("Current")
         self.mdi.addSubWindow(self.subwindow_current)
 
+    def subCurrentSingle(self):
+        widget = QWidget()
+        self.current_labels_single = CurrentLabels(widget)
+        self.subwindow_current_single = SubWindow(self)
+        self.subwindow_current_single.setWidget(widget)
+        self.subwindow_current_single.setWindowTitle("Current single")
+        self.mdi.addSubWindow(self.subwindow_current_single)
+
+    def subCurrentDouble(self):
+        widget = QWidget()
+        self.current_labels_double = CurrentLabels(widget)
+        self.subwindow_current_double = SubWindow(self)
+        self.subwindow_current_double.setWidget(widget)
+        self.subwindow_current_double.setWindowTitle("Current double")
+        self.mdi.addSubWindow(self.subwindow_current_double)
+
+    def subCurrentMultiple(self):
+        widget = QWidget()
+        self.current_labels_multiple = CurrentLabels(widget)
+        self.subwindow_current_multiple = SubWindow(self)
+        self.subwindow_current_multiple.setWidget(widget)
+        self.subwindow_current_multiple.setWindowTitle("Current multiple")
+        self.mdi.addSubWindow(self.subwindow_current_multiple)
+
     def subHistorical(self):
         widget = QWidget()
         self.historical_table = Table([], [])
@@ -943,6 +1201,60 @@ class MainWindow(QMainWindow):
 
         self.subwindow_plots.setWindowTitle("Plots")
         self.mdi.addSubWindow(self.subwindow_plots)
+
+    def subPlotsSingle(self):
+        pg.setConfigOptions(antialias=True, foreground='k')
+
+        self.subwindow_plots_single = SubWindow(self)
+        self.plot_win_single = pg.GraphicsWindow()
+
+        self.plot_config_button_single = QPushButton('Configure plot')
+        self.plot_config_button_single.setMaximumSize(QtCore.QSize(140, 60))
+        self.plot_config_button_single.clicked.connect(self.configPlot)
+
+        self.subwindow_plots_single.layout().setSpacing(0)
+        self.subwindow_plots_single.layout().setContentsMargins(0,0,0,0)
+        self.subwindow_plots_single.layout().addWidget(self.plot_win_single)
+        self.subwindow_plots_single.layout().addWidget(self.plot_config_button_single)
+
+        self.subwindow_plots_single.setWindowTitle("Plots single")
+        self.mdi.addSubWindow(self.subwindow_plots_single)
+
+    def subPlotsDouble(self):
+        pg.setConfigOptions(antialias=True, foreground='k')
+
+        self.subwindow_plots_double = SubWindow(self)
+        self.plot_win_double = pg.GraphicsWindow()
+
+        self.plot_config_button_double = QPushButton('Configure plot')
+        self.plot_config_button_double.setMaximumSize(QtCore.QSize(140, 60))
+        self.plot_config_button_double.clicked.connect(self.configPlot)
+
+        self.subwindow_plots_double.layout().setSpacing(0)
+        self.subwindow_plots_double.layout().setContentsMargins(0,0,0,0)
+        self.subwindow_plots_double.layout().addWidget(self.plot_win_double)
+        self.subwindow_plots_double.layout().addWidget(self.plot_config_button_double)
+
+        self.subwindow_plots_double.setWindowTitle("Plots double")
+        self.mdi.addSubWindow(self.subwindow_plots_double)
+
+    def subPlotsMultiple(self):
+        pg.setConfigOptions(antialias=True, foreground='k')
+
+        self.subwindow_plots_multiple = SubWindow(self)
+        self.plot_win_multiple = pg.GraphicsWindow()
+
+        self.plot_config_button_multiple = QPushButton('Configure plot')
+        self.plot_config_button_multiple.setMaximumSize(QtCore.QSize(140, 60))
+        self.plot_config_button_multiple.clicked.connect(self.configPlot)
+
+        self.subwindow_plots_multiple.layout().setSpacing(0)
+        self.subwindow_plots_multiple.layout().setContentsMargins(0,0,0,0)
+        self.subwindow_plots_multiple.layout().addWidget(self.plot_win_multiple)
+        self.subwindow_plots_multiple.layout().addWidget(self.plot_config_button_multiple)
+
+        self.subwindow_plots_multiple.setWindowTitle("Plots multiple")
+        self.mdi.addSubWindow(self.subwindow_plots_multiple)
 
     def configPlot(self):
         iconWidth = 100
@@ -1185,6 +1497,12 @@ class MainWindow(QMainWindow):
     def updateCurrents(self, data):
         for (pos, index) in enumerate(self.combination_indexes):
             self.current_labels.changeValue(pos, data[-1, index + 2])
+        for pos, index in enumerate(self.combination_indexes[:len(self.active_channels_single)]):
+            self.current_labels_single.changeValue(pos, data[-1, index + 2])
+        for pos, index in enumerate(self.combination_indexes[len(self.active_channels_single):(len(self.active_channels_single)+len(self.active_channels_double))]):
+            self.current_labels_double.changeValue(pos, data[-1, index + 2])
+        for pos, index in enumerate(self.combination_indexes[(len(self.active_channels_single)+len(self.active_channels_double)):]):
+            self.current_labels_multiple.changeValue(pos, data[-1, index + 2])
 
     def updateData(self):
         def get(counters, time_, id):
@@ -1240,6 +1558,12 @@ class MainWindow(QMainWindow):
         time_ = data[:, 0]
         for (i, j) in enumerate(self.combination_indexes):
             self.plot_lines[i].setData(time_, data[:, j + 2])
+        for (i, j) in enumerate(self.combination_indexes[:len(self.active_channels_single)]):
+            self.plot_lines_single[i].setData(time_, data[:, j + 2])
+        for (i, j) in enumerate(self.combination_indexes[len(self.active_channels_single):(len(self.active_channels_single)+len(self.active_channels_double))]):
+            self.plot_lines_double[i].setData(time_, data[:, j + 2])
+        for (i, j) in enumerate(self.combination_indexes[(len(self.active_channels_single)+len(self.active_channels_double)):]):
+            self.plot_lines_multiple[i].setData(time_, data[:, j + 2])
 
     def updateTable(self, data):
         self.historical_table.insertData(data)
@@ -1313,6 +1637,7 @@ def run():
     splash.close()
 
     main = MainWindow()
+    #main.showMaximized()
     main.setWindowIcon(constants.ICON)
 
     main.show2()
