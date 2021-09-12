@@ -39,7 +39,6 @@ import breeze_resources
 
 STDOUT = None
 
-
 def getCombinations(n_channels):
     letters = [chr(i + ord('A')) for i in range(n_channels)]
     joined = "".join(letters)
@@ -47,9 +46,7 @@ def getCombinations(n_channels):
         letters += ["".join(pair) for pair in combinations(joined, i)]
     return letters
 
-
 common.readConstantsFile()
-
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -95,14 +92,32 @@ class MainWindow(QMainWindow):
         self.connect_button = QPushButton("Connect")
         self.connect_button.setMaximumSize(QtCore.QSize(140, 60))
         layout2.addWidget(self.connect_button)
-        self.acquisition_button = QPushButton("Start Acquisition")
+        self.acquisition_button = QPushButton("Start acquisition")
         self.acquisition_button.setMaximumSize(QtCore.QSize(140, 60))
         layout2.addWidget(self.acquisition_button)
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine)
+        line.setFrameShadow(QFrame.Sunken)
+        layout2.addWidget(line)
         self.clear_button = QPushButton("Clear plot")
         self.clear_button.setMaximumSize(QtCore.QSize(140, 60))
         layout2.addWidget(self.clear_button)
-
-        #layout.addWidget(frame2)
+        self.plots_config_button = QPushButton('Configure plot')
+        self.plots_config_button.clicked.connect(self.configPlot)
+        self.plots_config_button.setMaximumSize(QtCore.QSize(140, 60))
+        layout2.addWidget(self.plots_config_button)
+        self.reset_time_button = QPushButton('Reset time')
+        self.reset_time_button.clicked.connect(self.resetTime)
+        self.reset_time_button_pressed = False
+        self.reset_time_button.setEnabled(False)
+        self.reset_time_button.setMaximumSize(QtCore.QSize(140, 60))
+        layout2.addWidget(self.reset_time_button)
+        self.plots_combo_box = QComboBox(self)
+        self.plots_time_options = {'Time range':None,'10s':10, '30s':30, '1m':60, 
+                                    '5m':300, '15m':900, '1h':3600, 'All data':'All data'}
+        self.plots_combo_box.addItems(list(self.plots_time_options.keys()))
+        self.plots_combo_box.setMaximumSize(QtCore.QSize(110, 60))
+        layout2.addWidget(self.plots_combo_box)
 
         frame3 = QFrame()
         layout3 = QHBoxLayout(frame3)
@@ -212,7 +227,11 @@ class MainWindow(QMainWindow):
         self.counts_plot_multiple.setLabel('left', "Counts")
         self.counts_plot_multiple.setLabel('bottom', "Time", units='s')
 
+        self.dark_colors_in_use = {}
+        self.light_colors_in_use = {}
 
+        self.symbolSize = 8
+        self.linewidth = 2
         """
         Timers
         """
@@ -342,9 +361,6 @@ class MainWindow(QMainWindow):
         self.setSettings()
         self.updateConstants()
 
-        #self.mdi.setActivationOrder(QMdiArea.StackingOrder)
-        #self.mdi.setActivationOrder(QMdiArea.ActivationHistoryOrder)
-
     def aboutWindowCaller(self):
         self.about_window.show()
 
@@ -362,12 +378,11 @@ class MainWindow(QMainWindow):
             elif len(channel) == 3 or len(channel) == 4:
                 self.active_channels_multiple.append(channel)
 
-        print('activeChannelsChanged')
         self.initPlots()
-        self.current_labels.createLabels(self.active_channels)
-        self.current_labels_single.createLabels(self.active_channels_single)
-        self.current_labels_double.createLabels(self.active_channels_double)
-        self.current_labels_multiple.createLabels(self.active_channels_multiple)
+        self.current_labels.createLabels(self.active_channels, self.light_colors_in_use, self.dark_colors_in_use)
+        self.current_labels_single.createLabels(self.active_channels_single, self.light_colors_in_use, self.dark_colors_in_use)
+        self.current_labels_double.createLabels(self.active_channels_double, self.light_colors_in_use, self.dark_colors_in_use)
+        self.current_labels_multiple.createLabels(self.active_channels_multiple, self.light_colors_in_use, self.dark_colors_in_use)
         self.combination_indexes = [i for (i, com) in enumerate(self.combinations) if com in self.active_channels]
 
         "Clear table"
@@ -408,12 +423,6 @@ class MainWindow(QMainWindow):
             raise ExtentionError()
 
     def checkParams(self):
-        # print('\n###########################')
-        # for subwindow in self.mdi.subWindowList():
-        #     print(subwindow.windowTitle())
-        # print('mdiActivationOrder',self.mdi.activationOrder())
-        # print('***************************\n')
-        print(len(self.plot_lines))
         if self.port_name != None:
             try:
                 if self.statusBar.currentMessage() != abacus.getStatusMessage():
@@ -509,6 +518,7 @@ class MainWindow(QMainWindow):
             try:
                 if self.data_ring != None:
                     self.data_ring.save()
+                #self.writeGuiSettings()
             except Exception as e:
                 if abacus.constants.DEBUG: print(e)
             if self.results_files != None:
@@ -624,6 +634,7 @@ class MainWindow(QMainWindow):
             self.statusBar.setStyleSheet("")
             self.statusBar.showMessage("")
             abacus.setStatusMessage("")
+            self.tabs_widget.clearMultipleChecked()
         else:
             self.connect_dialog = ConnectDialog()
             self.connect_dialog.refresh()
@@ -719,6 +730,7 @@ class MainWindow(QMainWindow):
 
     def handleViews(self, q):
         text = q.text()
+        button = None
         if "Show" in text:
             for action in self.menuView.actions():
                 if text == action.text():
@@ -752,13 +764,16 @@ class MainWindow(QMainWindow):
                         action.setChecked(False)
                         subwindow.hide()
                         self.mdi.tileSubWindows()
-                        if button.isCheckable(): button.setChecked(False)
+                        if button != None and button.isCheckable(): 
+                            button.setChecked(False)
                     else:
                         action.setChecked(True)
-                        if subwindow not in self.mdi.subWindowList(): self.mdi.addSubWindow(subwindow)
+                        if subwindow not in self.mdi.subWindowList(): 
+                            self.mdi.addSubWindow(subwindow)
                         subwindow.show()
                         self.mdi.tileSubWindows()
-                        if button.isCheckable(): button.setChecked(True)
+                        if button != None and button.isCheckable(): 
+                            button.setChecked(True)
 
         elif text == "Cascade":
             self.mdi.cascadeSubWindows()
@@ -776,87 +791,186 @@ class MainWindow(QMainWindow):
         self.__sleep_timer__.stop()
         self.connect()
 
+    def resizeEvent(self, event):
+        self.mdi.tileSubWindows()
+        QtWidgets.QMainWindow.resizeEvent(self, event)
+
     def initPlots(self):
-        self.removePlots()
-        print("lines", len(self.plot_lines))
-        self.legend = self.counts_plot.addLegend()
+        self.removePlots()  
+
         if not constants.IS_LIGHT_THEME:
             nColors = len(constants.DARK_COLORS)
         else:
             nColors = len(constants.COLORS)
+
         nSymbols = len(constants.SYMBOLS)
-        symbolSize = 8
-        linewidth = 2
-        for i in range(len(self.active_channels)):
+
+        for i,channel in enumerate(self.active_channels):
+
             if not constants.IS_LIGHT_THEME:
-                color = constants.DARK_COLORS[i % nColors]
+                if channel in self.dark_colors_in_use.keys():
+                    color = self.dark_colors_in_use[channel][0]
+                    symbol = self.dark_colors_in_use[channel][1]
+                elif not any(self.dark_colors_in_use.keys()):
+                    color = constants.DARK_COLORS[i % nColors]
+                    symbol = constants.SYMBOLS[i % nSymbols]
+                else:
+                    last_color_used, last_symbol_used = list(self.dark_colors_in_use.values())[-1]
+                    if last_color_used in constants.DARK_COLORS:
+                        index_color = constants.DARK_COLORS.index(last_color_used)
+                    else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
+                        index_color = np.random.randint(0, nColors)
+                    index_symbol = constants.SYMBOLS.index(last_symbol_used)
+                    if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
+                        index_color = -1
+                    if index_symbol == (nSymbols - 1): 
+                        index_symbol = -1
+                    color = constants.DARK_COLORS[index_color + 1]
+                    symbol = constants.SYMBOLS[index_symbol + 1]
+                self.dark_colors_in_use[channel] = [color, symbol]
             else:
-                color = constants.COLORS[i % nColors]
-            symbol = constants.SYMBOLS[i % nSymbols]
+                if channel in self.light_colors_in_use.keys():
+                    color = self.light_colors_in_use[channel][0]
+                    symbol = self.light_colors_in_use[channel][1]
+                elif not any(self.light_colors_in_use.keys()):
+                    color = constants.COLORS[i % nColors]
+                    symbol = constants.SYMBOLS[i % nSymbols]
+                else:
+                    last_color_used, last_symbol_used = list(self.light_colors_in_use.values())[-1]
+                    if last_color_used in constants.COLORS:
+                        index_color = constants.COLORS.index(last_color_used)
+                    else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
+                        index_color = np.random.randint(0, nColors)
+                    #index_color = constants.COLORS.index(last_color_used)
+                    index_symbol = constants.SYMBOLS.index(last_symbol_used)
+                    if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
+                        index_color = -1
+                    if index_symbol == (nSymbols - 1): 
+                        index_symbol = -1
+                    color = constants.COLORS[index_color + 1]
+                    symbol = constants.SYMBOLS[index_symbol + 1]
+                self.light_colors_in_use[channel] = [color, symbol]
+
             letter = self.active_channels[i]
-            pen = pg.mkPen(color, width=linewidth)
+            pen = pg.mkPen(color, width=self.linewidth)
             plot = self.counts_plot.plot(pen=pen, symbol=symbol,
                                          symbolPen=color, symbolBrush=color,
-                                         symbolSize=symbolSize, name=letter)
+                                         symbolSize=self.symbolSize, name=letter)
             self.plot_lines.append(plot)
 
-        for i in range(len(self.active_channels_single)):
+        # new_plots_info = []
+        # for line in self.plot_lines:
+        #     info = {'name': line.opts['name'], 
+        #                 'pen': line.opts['pen'].width(), 
+        #                 'symbol': line.opts['symbol'], 
+        #                 'symbolPen': line.opts['symbolPen'], 
+        #                 'symbolSize': line.opts['symbolSize'], 
+        #                 'symbolBrush': line.opts['symbolBrush']}
+        #     new_plots_info.append(info)
+
+        # print("")
+        # print(new_plots_info)
+
+        #print('\ncolors_light', self.light_colors_in_use)
+        #print('colors_dark', self.dark_colors_in_use)
+
+        if constants.IS_LIGHT_THEME: 
+            legend_color = QtGui.QColor('#000000')
+            legend_border = QtGui.QColor('#000000')
+        else: 
+            legend_color = QtGui.QColor('#ffffff')
+            legend_border = QtGui.QColor('#ffffff')
+
+        self.legend = self.counts_plot.addLegend(verSpacing=-8, labelTextColor=legend_color)
+        self.legend.setLabelTextColor(legend_color)
+        #self.legend.setPen(legend_border)
+        self.legend.setParentItem(self.counts_plot)
+        self.legend.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
+
+        # Plots single
+        for i,channel in enumerate(self.active_channels_single):
             if not constants.IS_LIGHT_THEME:
-                color = constants.DARK_COLORS[i % nColors]
+                #color = constants.DARK_COLORS[i % nColors]
+                color = self.dark_colors_in_use[channel][0]
+                symbol = self.dark_colors_in_use[channel][1]
             else:
-                color = constants.COLORS[i % nColors]
-            symbol = constants.SYMBOLS[i % nSymbols]
+                #color = constants.COLORS[i % nColors]
+                color = self.light_colors_in_use[channel][0]
+                symbol = self.light_colors_in_use[channel][1]
+            #symbol = constants.SYMBOLS[i % nSymbols]
             letter = self.active_channels_single[i]
-            pen = pg.mkPen(color, width=linewidth)
+            pen = pg.mkPen(color, width=self.linewidth)
             plot = self.counts_plot_single.plot(pen=pen, symbol=symbol,
                                          symbolPen=color, symbolBrush=color,
-                                         symbolSize=symbolSize, name=letter)
+                                         symbolSize=self.symbolSize, name=letter)
             self.plot_lines_single.append(plot)
 
-        for i in range(len(self.active_channels_double)):
+        self.legend_single = self.counts_plot_single.addLegend(verSpacing=-8, labelTextColor=legend_color)
+        self.legend_single.setLabelTextColor(legend_color)
+        #self.legend.setPen(legend_border)
+        self.legend_single.setParentItem(self.counts_plot_single)
+        self.legend_single.anchor(itemPos=(1,0), parentPos=(1,0), offset=(17,-15))
+
+        # Plots double
+        for i,channel in enumerate(self.active_channels_double):
             if not constants.IS_LIGHT_THEME:
-                color = constants.DARK_COLORS[i % nColors]
+                #color = constants.DARK_COLORS[i % nColors]
+                color = self.dark_colors_in_use[channel][0]
+                symbol = self.dark_colors_in_use[channel][1]
             else:
-                color = constants.COLORS[i % nColors]
-            symbol = constants.SYMBOLS[i % nSymbols]
+                #color = constants.COLORS[i % nColors]
+                color = self.light_colors_in_use[channel][0]
+                symbol = self.light_colors_in_use[channel][1]
+            #symbol = constants.SYMBOLS[i % nSymbols]
             letter = self.active_channels_double[i]
-            pen = pg.mkPen(color, width=linewidth)
+            pen = pg.mkPen(color, width=self.linewidth)
             plot = self.counts_plot_double.plot(pen=pen, symbol=symbol,
                                          symbolPen=color, symbolBrush=color,
-                                         symbolSize=symbolSize, name=letter)
+                                         symbolSize=self.symbolSize, name=letter)
             self.plot_lines_double.append(plot)
 
-        for i in range(len(self.active_channels_multiple)):
+        self.legend_double = self.counts_plot_double.addLegend(verSpacing=-8, labelTextColor=legend_color)
+        self.legend_double.setLabelTextColor(legend_color)
+        #self.legend.setPen(legend_border)
+        self.legend_double.setParentItem(self.counts_plot_double)
+        self.legend_double.anchor(itemPos=(1,0), parentPos=(1,0), offset=(20,-15))
+
+        # Plots multiple
+        for i,channel in enumerate(self.active_channels_multiple):
             if not constants.IS_LIGHT_THEME:
-                color = constants.DARK_COLORS[i % nColors]
+                #color = constants.DARK_COLORS[i % nColors]
+                color = self.dark_colors_in_use[channel][0]
+                symbol = self.dark_colors_in_use[channel][1]
             else:
-                color = constants.COLORS[i % nColors]
-            symbol = constants.SYMBOLS[i % nSymbols]
+                #color = constants.COLORS[i % nColors]
+                color = self.light_colors_in_use[channel][0]
+                symbol = self.light_colors_in_use[channel][1]
+            #symbol = constants.SYMBOLS[i % nSymbols]
             letter = self.active_channels_multiple[i]
-            pen = pg.mkPen(color, width=linewidth)
+            pen = pg.mkPen(color, width=self.linewidth)
             plot = self.counts_plot_multiple.plot(pen=pen, symbol=symbol,
                                          symbolPen=color, symbolBrush=color,
-                                         symbolSize=symbolSize, name=letter)
+                                         symbolSize=self.symbolSize, name=letter)
             self.plot_lines_multiple.append(plot)
 
+        self.legend_multiple = self.counts_plot_multiple.addLegend(verSpacing=-8, labelTextColor=legend_color)
+        self.legend_multiple.setLabelTextColor(legend_color)
+        #self.legend.setPen(legend_border)
+        self.legend_multiple.setParentItem(self.counts_plot_multiple)
+        self.legend_multiple.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
+
     def removePlots(self):
-        print('removePlots', self.legend)
-        #if self.legend != None:
-        #    if self.legend.scene() != None:  #new on v1.4.0 (2020-06-23). This solves the issue of not reconnecting to a device after disconnection.
-        #        self.legend.scene().removeItem(self.legend)
-        for line in self.plot_lines:
-            line.clear()
-        for line in self.plot_lines_single: line.clear()
-        for line in self.plot_lines_double: line.clear()
-        for line in self.plot_lines_multiple: line.clear()
+        if self.legend != None:
+            if self.legend.scene() != None:  #new on v1.4.0 (2020-06-23). This solves the issue of not reconnecting to a device after disconnection.
+                self.legend.scene().removeItem(self.legend)
+        self.counts_plot.clear()
+        self.counts_plot_single.clear()
+        self.counts_plot_double.clear()
+        self.counts_plot_multiple.clear()
         self.plot_lines = []
         self.plot_lines_single = []
         self.plot_lines_double = []
         self.plot_lines_multiple = []
-        self.legend = None
-        self.legend_single = None
-        self.legend_double = None
-        self.legend_multiple = None
 
     def samplingMethod(self, value, force_write=False):
         if self.sampling_widget != None:
@@ -866,11 +980,10 @@ class MainWindow(QMainWindow):
                 try:
                     abacus.setSetting(self.port_name, 'sampling', value)
                     if value > constants.DATA_REFRESH_RATE:
-                        self.refresh_timer.setInterval(value)
+                        self.refresh_timer.setInterval(value*0.1)
                     else:
                         self.refresh_timer.setInterval(constants.DATA_REFRESH_RATE)
                     self.data_timer.setInterval(value)
-                    # self.sampling_widget.valid()
                     self.writeParams("Sampling time (ms), %s" % value)
                 # except abacus.InvalidValueError as e:
                 #     self.sampling_widget.invalid()
@@ -921,8 +1034,8 @@ class MainWindow(QMainWindow):
 
     def setDarkTheme(self):
         constants.IS_LIGHT_THEME = False
-        print('setDarkTheme antes de initPlots')
         self.initPlots()
+        self.initPlots() # (26-09-2021) initPlots() need to be called twice for the legends to have the correct colors, but this shouldn't be the case
         self.plot_win.setBackground((42, 42, 42))
         self.plot_win_single.setBackground((42, 42, 42))
         self.plot_win_double.setBackground((42, 42, 42))
@@ -952,21 +1065,23 @@ class MainWindow(QMainWindow):
         self.delaySweepDialog.setDarkTheme()
         self.sleepSweepDialog.setDarkTheme()
 
-        self.current_labels.createLabels(self.active_channels)
+        self.current_labels.createLabels(self.active_channels, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
 
-        self.current_labels_single.createLabels(self.active_channels_single)
+        self.current_labels_single.createLabels(self.active_channels_single, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_single.clearSizes()
         self.current_labels_single.resizeEvent(None)
 
-        self.current_labels_double.createLabels(self.active_channels_double)
+        self.current_labels_double.createLabels(self.active_channels_double, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_double.clearSizes()
         self.current_labels_double.resizeEvent(None)
 
-        self.current_labels_multiple.createLabels(self.active_channels_multiple)
+        self.current_labels_multiple.createLabels(self.active_channels_multiple, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_multiple.clearSizes()
         self.current_labels_multiple.resizeEvent(None)
+
+        self.updateWidgets()
 
         self.tabs_widget.changeButtonsIcons()
         self.mdi.setBackground(QtGui.QBrush(QtGui.QColor("#353535")))
@@ -975,8 +1090,8 @@ class MainWindow(QMainWindow):
 
     def setLightTheme(self):
         constants.IS_LIGHT_THEME = True
-        print('setLightTheme')
         self.initPlots()
+        self.initPlots() # (26-09-2021) initPlots() needs to be called twice for the legends to have the correct colors, but this shouldn't be the case
         self.theme_action.setText('Dark theme')
         qtmodern.styles.light(app)
 
@@ -1008,21 +1123,23 @@ class MainWindow(QMainWindow):
         self.delaySweepDialog.setLightTheme()
         self.sleepSweepDialog.setLightTheme()
 
-        self.current_labels.createLabels(self.active_channels)
+        self.current_labels.createLabels(self.active_channels, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels.clearSizes()
         self.current_labels.resizeEvent(None)
 
-        self.current_labels_single.createLabels(self.active_channels_single)
+        self.current_labels_single.createLabels(self.active_channels_single, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_single.clearSizes()
         self.current_labels_single.resizeEvent(None)
 
-        self.current_labels_double.createLabels(self.active_channels_double)
+        self.current_labels_double.createLabels(self.active_channels_double, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_double.clearSizes()
         self.current_labels_double.resizeEvent(None)
 
-        self.current_labels_multiple.createLabels(self.active_channels_multiple)
+        self.current_labels_multiple.createLabels(self.active_channels_multiple, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_multiple.clearSizes()
         self.current_labels_multiple.resizeEvent(None)
+
+        self.updateWidgets()
 
         self.tabs_widget.changeButtonsIcons()
         self.mdi.setBackground(QtGui.QBrush(QtGui.QColor("#f0f0f0")))
@@ -1108,12 +1225,14 @@ class MainWindow(QMainWindow):
             if not self.streaming:
                 self.acquisition_button.setStyleSheet("background-color: none")
                 self.acquisition_button.setText("Start acquisition")
+                self.reset_time_button.setEnabled(False)
                 self.results_files.writeParams("Acquisition stopped")
                 self.unlockSettings()
                 self.stopClocks()
             else:
                 self.acquisition_button.setStyleSheet("background-color: green")
                 self.acquisition_button.setText("Stop acquisition")
+                self.reset_time_button.setEnabled(True)
                 self.results_files.writeParams("Acquisition started")
                 self.sendSettings()
                 self.unlockSettings(False)
@@ -1189,16 +1308,9 @@ class MainWindow(QMainWindow):
 
         self.subwindow_plots = SubWindow(self)
         self.plot_win = pg.GraphicsWindow()
-
-        self.plot_config_button = QPushButton('Configure plot')
-        self.plot_config_button.setMaximumSize(QtCore.QSize(140, 60))
-        self.plot_config_button.clicked.connect(self.configPlot)
-
         self.subwindow_plots.layout().setSpacing(0)
         self.subwindow_plots.layout().setContentsMargins(0,0,0,0)
         self.subwindow_plots.layout().addWidget(self.plot_win)
-        self.subwindow_plots.layout().addWidget(self.plot_config_button)
-
         self.subwindow_plots.setWindowTitle("Plots")
         self.mdi.addSubWindow(self.subwindow_plots)
 
@@ -1207,16 +1319,9 @@ class MainWindow(QMainWindow):
 
         self.subwindow_plots_single = SubWindow(self)
         self.plot_win_single = pg.GraphicsWindow()
-
-        self.plot_config_button_single = QPushButton('Configure plot')
-        self.plot_config_button_single.setMaximumSize(QtCore.QSize(140, 60))
-        self.plot_config_button_single.clicked.connect(self.configPlot)
-
         self.subwindow_plots_single.layout().setSpacing(0)
         self.subwindow_plots_single.layout().setContentsMargins(0,0,0,0)
         self.subwindow_plots_single.layout().addWidget(self.plot_win_single)
-        self.subwindow_plots_single.layout().addWidget(self.plot_config_button_single)
-
         self.subwindow_plots_single.setWindowTitle("Plots single")
         self.mdi.addSubWindow(self.subwindow_plots_single)
 
@@ -1225,16 +1330,9 @@ class MainWindow(QMainWindow):
 
         self.subwindow_plots_double = SubWindow(self)
         self.plot_win_double = pg.GraphicsWindow()
-
-        self.plot_config_button_double = QPushButton('Configure plot')
-        self.plot_config_button_double.setMaximumSize(QtCore.QSize(140, 60))
-        self.plot_config_button_double.clicked.connect(self.configPlot)
-
         self.subwindow_plots_double.layout().setSpacing(0)
         self.subwindow_plots_double.layout().setContentsMargins(0,0,0,0)
         self.subwindow_plots_double.layout().addWidget(self.plot_win_double)
-        self.subwindow_plots_double.layout().addWidget(self.plot_config_button_double)
-
         self.subwindow_plots_double.setWindowTitle("Plots double")
         self.mdi.addSubWindow(self.subwindow_plots_double)
 
@@ -1243,49 +1341,37 @@ class MainWindow(QMainWindow):
 
         self.subwindow_plots_multiple = SubWindow(self)
         self.plot_win_multiple = pg.GraphicsWindow()
-
-        self.plot_config_button_multiple = QPushButton('Configure plot')
-        self.plot_config_button_multiple.setMaximumSize(QtCore.QSize(140, 60))
-        self.plot_config_button_multiple.clicked.connect(self.configPlot)
-
         self.subwindow_plots_multiple.layout().setSpacing(0)
         self.subwindow_plots_multiple.layout().setContentsMargins(0,0,0,0)
         self.subwindow_plots_multiple.layout().addWidget(self.plot_win_multiple)
-        self.subwindow_plots_multiple.layout().addWidget(self.plot_config_button_multiple)
-
         self.subwindow_plots_multiple.setWindowTitle("Plots multiple")
         self.mdi.addSubWindow(self.subwindow_plots_multiple)
 
     def configPlot(self):
-        iconWidth = 100
-        iconHeight = 20
-        iconSize = QtCore.QSize(iconWidth, iconHeight)
-        img = QtGui.QImage(iconWidth,iconHeight,QtGui.QImage.Format_RGB32)
-        painter = QtGui.QPainter(img)
-        painter.fillRect(img.rect(), QtCore.Qt.lightGray)
-        rect = img.rect().adjusted(1,1,-1,-1)
-        self.plot_config_dialog = PlotConfigsDialog(img, painter, rect, iconSize, self.plot_win, self.plot_lines)
-        self.plot_config_dialog.exec_()
+        if self.data_ring != None:
+            iconWidth = 100
+            iconHeight = 20
+            iconSize = QtCore.QSize(iconWidth, iconHeight)
+            img = QtGui.QImage(iconWidth,iconHeight,QtGui.QImage.Format_RGB32)
+            painter = QtGui.QPainter(img)
+            painter.fillRect(img.rect(), QtCore.Qt.lightGray)
+            rect = img.rect().adjusted(1,1,-1,-1)
+            self.plot_config_dialog = PlotConfigsDialog(img, painter, rect, iconSize, self.plot_lines, 
+                                                        self.light_colors_in_use, self.dark_colors_in_use, self)
+            self.plot_config_dialog.exec_()
 
-        new_plots_info = []
-        for line in self.plot_lines:
-            info = {'name': line.opts['name'], 
-                    'pen': line.opts['pen'].width(), 
-                    'symbol': line.opts['symbol'], 
-                    'symbolPen': line.opts['symbolPen'], 
-                    'symbolSize': line.opts['symbolSize'], 
-                    'symbolBrush': line.opts['symbolBrush']}
-            new_plots_info.append(info)
+            self.initPlots()
+            self.current_labels.createLabels(self.active_channels, self.light_colors_in_use, self.dark_colors_in_use)
+            self.current_labels_single.createLabels(self.active_channels_single, self.light_colors_in_use, self.dark_colors_in_use)
+            self.current_labels_double.createLabels(self.active_channels_double, self.light_colors_in_use, self.dark_colors_in_use)
+            self.current_labels_multiple.createLabels(self.active_channels_multiple, self.light_colors_in_use, self.dark_colors_in_use)
+            self.updateWidgets()
 
-        print(new_plots_info)
-
-        # self.counts_plot.clear()
-        # self.plot_lines = []
-        # for item in new_plots_info:
-        #     plot = self.counts_plot.plot(pen=item['pen'], symbol=item['symbol'],
-        #                                  symbolPen=item['symbolPen'], symbolBrush=item['symbolBrush'],
-        #                                  symbolSize=item['symbolSize'], name=item['name'])
-        #     self.plot_lines.append(plot)
+    def resetTime(self):
+        self.reset_time_button_pressed = True
+        self.updateData()
+        self.reset_time_button_pressed = False
+        self.clearPlot()
 
     def subSettings(self, new=True):
         def fillFormLayout(layout, values, new=True):
@@ -1428,6 +1514,8 @@ class MainWindow(QMainWindow):
             self.settings_frame2_formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.coincidence_label)
             self.settings_frame2_formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.coincidence_spinBox)
 
+            #self.settings_frame2.setTabOrder(self.sampling_widget.widget, self.coincidence_label)
+
             self.unlock_settings_button = QPushButton("Unlock settings")
             self.unlock_settings_button.clicked.connect(lambda: self.unlockSettings(True))
 
@@ -1531,7 +1619,20 @@ class MainWindow(QMainWindow):
             for i in range(constants.NUMBER_OF_TRIES):
                 try:
                     data = self.data_ring[:]
+                    if self.reset_time_button_pressed: self.init_time = time()
                     time_ = time() - self.init_time
+                    time_range = self.plots_combo_box.currentText()
+                    time_range = self.plots_time_options[time_range]
+                    if type(time_range) == type(2):
+                        self.counts_plot.setXRange(time_-time_range, time_ + 0.15*time_range)
+                        self.counts_plot_single.setXRange(time_-time_range, time_+ 0.15*time_range)
+                        self.counts_plot_double.setXRange(time_-time_range, time_+ 0.15*time_range)
+                        self.counts_plot_multiple.setXRange(time_-time_range, time_+ 0.15*time_range)
+                    else:
+                        self.counts_plot.setXRange(0, time_ + 0.15*time_)
+                        self.counts_plot_single.setXRange(0, time_ + 0.15*time_)
+                        self.counts_plot_double.setXRange(0, time_ + 0.15*time_)
+                        self.counts_plot_multiple.setXRange(0, time_ + 0.15*time_)
                     if len(data):
                         last_id = data[-1, 1]
                     else:
@@ -1590,6 +1691,13 @@ class MainWindow(QMainWindow):
         elif abacus.constants.DEBUG:
             print("writeParams ignored: %s" % message)
 
+def writeGuiSettings(self):
+    settings.beginGroup("mdiArea/subSettings")
+    settings.setValue("size", )
+    settings.endGroup()
+
+def readGuiSettings(self):
+    settings
 
 def softwareUpdate(splash):
     try:
@@ -1637,11 +1745,11 @@ def run():
     splash.close()
 
     main = MainWindow()
-    #main.showMaximized()
+    main.showMaximized()
     main.setWindowIcon(constants.ICON)
 
     main.show2()
-    main.resize(800, 600)
+    #main.resize(800, 600)
     main.mdi.tileSubWindows()
     main.centerOnScreen()
     app.exec_()

@@ -447,6 +447,9 @@ class Tabs(QFrame):
         if self.parent.subwindow_current.isVisible(): self.btn_all_currents_subwindow.setChecked(True)
         if self.parent.subwindow_plots.isVisible(): self.btn_all_plots_subwindow.setChecked(True)
 
+    def clearMultipleChecked(self):
+        self.multiple_checked = []
+
     def getParent(self):
         return self.parent
 
@@ -589,18 +592,15 @@ class CurrentLabels(QtWidgets.QWidget):
         self.installEventFilter(self)
         self.labels = []
 
-    def createLabels(self, labels):
+    def createLabels(self, labels, light_colors, dark_colors):
         self.removeLabels()
         if not constants.IS_LIGHT_THEME:
-            nColors = len(constants.DARK_COLORS)
+            plots_info = dark_colors
         else:
-            nColors = len(constants.COLORS)
-        for (i, name) in enumerate(labels):
+            plots_info = light_colors
+        for name in labels:
             label = AutoSizeLabel(name, "0")
-            if not constants.IS_LIGHT_THEME:
-                color = constants.DARK_COLORS[i % nColors]
-            else:
-                color = constants.COLORS[i % nColors]
+            color = plots_info[name][0]
             self.setColor(label, color)
             self.layout.addWidget(label)
             self.labels.append(label)
@@ -980,13 +980,26 @@ class SubWindow(QtWidgets.QMdiSubWindow):
             self.parent.tabs_widget.double_tab_top.currentWindowButton.setChecked(False)
         elif "Current multiple".lower() == name:
             self.parent.tabs_widget.multiple_tab_top.currentWindowButton.setChecked(False)
+        elif "Current".lower() == name:
+            self.parent.tabs_widget.btn_all_currents_subwindow.setChecked(False)
+
         if "Plots single".lower() == name:
             self.parent.tabs_widget.single_tab_top.plotWindowButton.setChecked(False)
         elif "Plots double".lower() == name:
             self.parent.tabs_widget.double_tab_top.plotWindowButton.setChecked(False)
         elif "Plots multiple".lower() == name:
             self.parent.tabs_widget.multiple_tab_top.plotWindowButton.setChecked(False)
+        elif "Plots".lower() == name:
+            self.parent.tabs_widget.btn_all_plots_subwindow.setChecked(False)
+
         self.parent.mdi.tileSubWindows()
+
+    def resizeEvent(self, event):
+        self.parent.legend.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
+        self.parent.legend_single.anchor(itemPos=(1,0), parentPos=(1,0), offset=(17,-15))
+        self.parent.legend_double.anchor(itemPos=(1,0), parentPos=(1,0), offset=(20,-15))
+        self.parent.legend_multiple.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
+        QtWidgets.QMdiSubWindow.resizeEvent(self, event)
 
 class ClickableLineEdit(QtGui.QLineEdit):
     clicked = QtCore.pyqtSignal()
@@ -999,10 +1012,11 @@ class ClickableLineEdit(QtGui.QLineEdit):
         QtGui.QLineEdit.mousePressEvent(self, event)
 
 class PlotConfigsDialog(QDialog):
-    def __init__(self, img, painter, rect, iconSize, parent=None, active_channels_plotDataItems=None) :
-        super().__init__(parent)
+    def __init__(self, img, painter, rect, iconSize, active_channels_plotDataItems, 
+                light_colors_in_use, dark_colors_in_use, parent) :
+        super().__init__(parent=None)
 
-        self.setWindowTitle("Plot configuration")
+        self.setWindowTitle("Plots configuration")
         self.active_plots = active_channels_plotDataItems
         self.colors = None
         self.colors_names = None
@@ -1013,6 +1027,13 @@ class PlotConfigsDialog(QDialog):
         self.unmodified_configuration = {}
         self.markersize_spinbox = None
         self.linewidth_spinbox = None
+
+        # TODO The following parameters shouldn't be assigned to this class attributes 
+        # but should rather be accessed through the mainWindow attributes
+        self.light_colors_in_use = light_colors_in_use
+        self.dark_colors_in_use = dark_colors_in_use
+
+        self.parent = parent
 
         # Create comboBoxes for each channel that is currently active and 
         # show available colors in each one
@@ -1047,6 +1068,17 @@ class PlotConfigsDialog(QDialog):
                 if type(item[2]) == type(QPen()):
                     if color == item[2].color().name():
                         item[1].setCurrentIndex(i)
+            if item[2].color().name() not in self.colors:
+                color = item[2].color().name()
+                item[1].blockSignals(True)
+                self.painter.fillRect(self.img.rect(), QColor(color))
+                if item[1].count()-1 > len(self.colors):
+                    item[1].setItemData(0, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)
+                else:
+                    item[1].insertItem(0, color)
+                    item[1].setItemData(0, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)
+                item[1].setCurrentIndex(0) 
+                item[1].blockSignals(False)    
             item[1].addItem("Custom color")
             item[1].currentIndexChanged.connect(self.updateComboBox)
 
@@ -1124,10 +1156,9 @@ class PlotConfigsDialog(QDialog):
             self.painter = QtGui.QPainter(self.img)
             self.painter.fillRect(self.rect, QColor(color_selected))
             if comboBox.count()-1 > len(self.colors):
-                comboBox.setItemData(0, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)
-            else:
-                comboBox.insertItem(0, color_selected)
-                comboBox.setItemData(0, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)
+                comboBox.removeItem(0)   
+            comboBox.insertItem(0, color_selected)
+            comboBox.setItemData(0, QPixmap.fromImage(self.img), QtCore.Qt.DecorationRole)      
             comboBox.setCurrentIndex(0) 
             comboBox.blockSignals(False)
             self.painter.end()       
@@ -1140,25 +1171,19 @@ class PlotConfigsDialog(QDialog):
         for channel in self.channels_comboBoxes_colors.values():
             # channel[1] is a comboBox and channel[2] is its color
             if channel[1] == comboBox:
-                #channel[2] = QPen(QColor(color_selected))
                 channel[2] = color_selected
-            #channel[2].setWidth(self.linewidth_spinbox.value())
 
     def accept(self):
+        if constants.IS_LIGHT_THEME: colors = self.light_colors_in_use
+        else: colors = self.dark_colors_in_use
+
         for i,channel in enumerate(self.channels_comboBoxes_colors.values()):
+            current_symbol = colors[channel[0]][1]        
             if type(channel[2]) == type(""):
-                print('entra al if', channel[0])
-                linePen = QPen(QColor(channel[2]))
-                symbolPen = QPen(QColor(channel[2]))
-                channel[3].setSymbolBrush(channel[2])
+                colors[channel[0]] = [channel[2], current_symbol]
             else:
-                print('entra al else', channel[0])
-                linePen = QPen(channel[2])
-                symbolPen = QPen(channel[2])
-                channel[3].setSymbolBrush(channel[2].color())
-            linePen.setWidth(self.linewidth_spinbox.value())
-            symbolPen.setWidth(1)
-            channel[3].setPen(linePen)
-            channel[3].setSymbolPen(symbolPen)
-            channel[3].setSymbolSize(self.markersize_spinbox.value())                
+                colors[channel[0]] = [channel[2].color().name(), current_symbol]
+        
+        self.parent.symbolSize = self.markersize_spinbox.value()
+        self.parent.linewidth = self.linewidth_spinbox.value()                
         self.close()
