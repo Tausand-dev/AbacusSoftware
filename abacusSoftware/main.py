@@ -58,6 +58,7 @@ class MainWindow(QMainWindow):
         self.active_channels_single = []
         self.active_channels_double = []
         self.active_channels_multiple = []
+        self.devices_used = {} # The devices and channels used in the current session and in the past
         constants.IS_LIGHT_THEME = True
         widget = QWidget()
 
@@ -99,10 +100,10 @@ class MainWindow(QMainWindow):
         line.setFrameShape(QFrame.VLine)
         line.setFrameShadow(QFrame.Sunken)
         layout2.addWidget(line)
-        self.clear_button = QPushButton("Clear plot")
+        self.clear_button = QPushButton("Clear plots")
         self.clear_button.setMaximumSize(QtCore.QSize(140, 60))
         layout2.addWidget(self.clear_button)
-        self.plots_config_button = QPushButton('Configure plot')
+        self.plots_config_button = QPushButton('Configure plots')
         self.plots_config_button.clicked.connect(self.configPlot)
         self.plots_config_button.setMaximumSize(QtCore.QSize(140, 60))
         layout2.addWidget(self.plots_config_button)
@@ -112,11 +113,16 @@ class MainWindow(QMainWindow):
         self.reset_time_button.setEnabled(False)
         self.reset_time_button.setMaximumSize(QtCore.QSize(140, 60))
         layout2.addWidget(self.reset_time_button)
+        self.range_label = QLabel("Time range:")
+        self.range_label.setMaximumSize(QtCore.QSize(140, 60))
+        self.range_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.plots_combo_box = QComboBox(self)
-        self.plots_time_options = {'Time range':None,'10s':10, '30s':30, '1m':60, 
-                                    '5m':300, '15m':900, '1h':3600, 'All data':'All data'}
+        self.plots_time_options = {'10s':10, '30s':30, '1m':60, 
+                                    '5m':300, '15m':900, '1h':3600, 'All':'All'}
         self.plots_combo_box.addItems(list(self.plots_time_options.keys()))
-        self.plots_combo_box.setMaximumSize(QtCore.QSize(110, 60))
+        self.plots_combo_box.setMaximumSize(QtCore.QSize(70, 60))
+
+        layout2.addWidget(self.range_label)
         layout2.addWidget(self.plots_combo_box)
 
         frame3 = QFrame()
@@ -354,8 +360,8 @@ class MainWindow(QMainWindow):
         self.delaySweepDialog = builtin.DelayDialog(self)
         self.sleepSweepDialog = builtin.SleepDialog(self)
 
-        self.mdi.tileSubWindows()
-        self.mdi.cascadeSubWindows()
+        #self.mdi.tileSubWindows()
+        #self.mdi.cascadeSubWindows()
 
         self.setLightTheme()
         self.setSettings()
@@ -394,6 +400,9 @@ class MainWindow(QMainWindow):
         self.historical_layout.addWidget(self.historical_table)
 
         self.updateWidgets()
+
+        if self.port_name != None:
+            self.devices_used[self.port_name] = self.active_channels
 
     def centerOnScreen(self):
         resolution = QtGui.QDesktopWidget().screenGeometry()
@@ -518,7 +527,7 @@ class MainWindow(QMainWindow):
             try:
                 if self.data_ring != None:
                     self.data_ring.save()
-                #self.writeGuiSettings()
+                self.writeGuiSettings()
             except Exception as e:
                 if abacus.constants.DEBUG: print(e)
             if self.results_files != None:
@@ -667,6 +676,13 @@ class MainWindow(QMainWindow):
                 self.updateConstants()
                 self.check_timer.start()
 
+                if self.port_name not in self.devices_used.keys():
+                    self.devices_used[self.port_name] = []
+                    self.tabs_widget.simplyCheck(["A", "B", "AB"])
+                else:
+                    channels = self.devices_used[self.port_name]
+                    self.tabs_widget.simplyCheck(channels)
+
             else:
                 self.connect_button.setText("Connect")
                 self.acquisition_button.setDisabled(True)
@@ -756,8 +772,10 @@ class MainWindow(QMainWindow):
                     else:
                         subwindow = getattr(self, "subwindow_%s" % text)
 
-                    if subwindow == self.subwindow_current: button = self.tabs_widget.btn_all_currents_subwindow
-                    elif subwindow == self.subwindow_plots: button = self.tabs_widget.btn_all_plots_subwindow
+                    if subwindow == self.subwindow_current: 
+                        button = self.tabs_widget.btn_all_currents_subwindow
+                    elif subwindow == self.subwindow_plots: 
+                        button = self.tabs_widget.btn_all_plots_subwindow
                     
                     check = not action.isChecked() 
                     if check:
@@ -790,10 +808,6 @@ class MainWindow(QMainWindow):
     def initial(self):
         self.__sleep_timer__.stop()
         self.connect()
-
-    def resizeEvent(self, event):
-        self.mdi.tileSubWindows()
-        QtWidgets.QMainWindow.resizeEvent(self, event)
 
     def initPlots(self):
         self.removePlots()  
@@ -858,22 +872,6 @@ class MainWindow(QMainWindow):
                                          symbolSize=self.symbolSize, name=letter)
             self.plot_lines.append(plot)
 
-        # new_plots_info = []
-        # for line in self.plot_lines:
-        #     info = {'name': line.opts['name'], 
-        #                 'pen': line.opts['pen'].width(), 
-        #                 'symbol': line.opts['symbol'], 
-        #                 'symbolPen': line.opts['symbolPen'], 
-        #                 'symbolSize': line.opts['symbolSize'], 
-        #                 'symbolBrush': line.opts['symbolBrush']}
-        #     new_plots_info.append(info)
-
-        # print("")
-        # print(new_plots_info)
-
-        #print('\ncolors_light', self.light_colors_in_use)
-        #print('colors_dark', self.dark_colors_in_use)
-
         if constants.IS_LIGHT_THEME: 
             legend_color = QtGui.QColor('#000000')
             legend_border = QtGui.QColor('#000000')
@@ -883,7 +881,6 @@ class MainWindow(QMainWindow):
 
         self.legend = self.counts_plot.addLegend(verSpacing=-8, labelTextColor=legend_color)
         self.legend.setLabelTextColor(legend_color)
-        #self.legend.setPen(legend_border)
         self.legend.setParentItem(self.counts_plot)
         self.legend.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
 
@@ -1691,13 +1688,234 @@ class MainWindow(QMainWindow):
         elif abacus.constants.DEBUG:
             print("writeParams ignored: %s" % message)
 
-def writeGuiSettings(self):
-    settings.beginGroup("mdiArea/subSettings")
-    settings.setValue("size", )
-    settings.endGroup()
+    def writeGuiSettings(self):
+        settings = QtCore.QSettings("Tausand", "Abacus_Software")
 
-def readGuiSettings(self):
-    settings
+        settings.beginGroup("dark_colors_in_use")
+        if self.dark_colors_in_use != {}:
+            dark_channels = []
+            for letters in self.dark_colors_in_use.keys():
+                settings.setValue(letters, self.dark_colors_in_use[letters])
+                dark_channels.append(letters)
+            settings.setValue("dark_channels", dark_channels)
+        settings.endGroup()
+
+        settings.beginGroup("light_colors_in_use")
+        if self.light_colors_in_use != {}:
+            light_channels = []
+            for letters in self.light_colors_in_use.keys():
+                settings.setValue(letters, self.light_colors_in_use[letters])
+                light_channels.append(letters)
+            settings.setValue("dark_channels", light_channels)    
+        settings.endGroup()
+
+        settings.beginGroup("devices_previously_used")
+        if self.devices_used != {}:
+            if len(self.devices_used.keys()) == 1:
+                settings.setValue("names_of_devices_used", list(self.devices_used.keys())[0].replace(" ","_"))   
+            else: 
+                names = list(self.devices_used.keys())
+                modified_names = [name.replace(" ","_") for name in names]
+                settings.setValue("names_of_devices_used", modified_names)
+            for device in self.devices_used.keys():
+                device_name = device.replace(" ","_")
+                if len(self.devices_used[device]) == 1:
+                    settings.setValue(device_name, self.devices_used[device][0])
+                else:
+                    settings.setValue(device_name, self.devices_used[device])
+        settings.endGroup()
+
+        settings.beginGroup("MainWindow")
+        settings.setValue("size", self.size())
+        settings.endGroup()
+
+        settings.beginGroup("tabs_widget")
+        settings.setValue("single_tab_top_current_btn", self.tabs_widget.single_tab_top.currentWindowButton.isChecked())
+        settings.setValue("double_tab_top_current_btn", self.tabs_widget.double_tab_top.currentWindowButton.isChecked())
+        settings.setValue("multiple_tab_top_current_btn", self.tabs_widget.multiple_tab_top.currentWindowButton.isChecked())
+        settings.setValue("single_tab_top_plot_btn", self.tabs_widget.single_tab_top.plotWindowButton.isChecked())
+        settings.setValue("double_tab_top_plot_btn", self.tabs_widget.double_tab_top.plotWindowButton.isChecked())
+        settings.setValue("multiple_tab_top_plot_btn", self.tabs_widget.multiple_tab_top.plotWindowButton.isChecked())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subSettings")
+        settings.setValue("isVisible", self.subwindow_settings.isVisible())
+        settings.setValue("size", self.subwindow_settings.size())
+        settings.setValue("pos", self.subwindow_settings.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlots")
+        settings.setValue("isVisible", self.subwindow_plots.isVisible())
+        settings.setValue("size", self.subwindow_plots.size())
+        settings.setValue("pos", self.subwindow_plots.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlotsSingle")
+        settings.setValue("isVisible", self.subwindow_plots_single.isVisible())
+        settings.setValue("size", self.subwindow_plots_single.size())
+        settings.setValue("pos", self.subwindow_plots_single.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlotsDouble")
+        settings.setValue("isVisible", self.subwindow_plots_double.isVisible())
+        settings.setValue("size", self.subwindow_plots_double.size())
+        settings.setValue("pos", self.subwindow_plots_double.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlotsMultiple")
+        settings.setValue("isVisible", self.subwindow_plots_multiple.isVisible())
+        settings.setValue("size", self.subwindow_plots_multiple.size())
+        settings.setValue("pos", self.subwindow_plots_multiple.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrent")
+        settings.setValue("isVisible", self.subwindow_current.isVisible())
+        settings.setValue("size", self.subwindow_current.size())
+        settings.setValue("pos", self.subwindow_current.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrentSingle")
+        settings.setValue("isVisible", self.subwindow_current_single.isVisible())
+        settings.setValue("size", self.subwindow_current_single.size())
+        settings.setValue("pos", self.subwindow_current_single.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrentDouble")
+        settings.setValue("isVisible", self.subwindow_current_double.isVisible())
+        settings.setValue("size", self.subwindow_current_double.size())
+        settings.setValue("pos", self.subwindow_current_double.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrentMultiple")
+        settings.setValue("isVisible", self.subwindow_current_multiple.isVisible())
+        settings.setValue("size", self.subwindow_current_multiple.size())
+        settings.setValue("pos", self.subwindow_current_multiple.pos())
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subHistorical")
+        settings.setValue("isVisible", self.subwindow_historical.isVisible())
+        settings.setValue("size", self.subwindow_historical.size())
+        settings.setValue("pos", self.subwindow_historical.pos())
+        settings.endGroup()
+
+        settings.beginGroup("menuView")
+        for action in self.menuView.actions():
+            key = action.text().lower().replace(" ","_")
+            if key != "":
+                settings.setValue(key, action.isChecked())
+        settings.endGroup()
+
+    def readGuiSettings(self):
+        settings = QtCore.QSettings("Tausand", "Abacus_Software")
+
+        settings.beginGroup("dark_colors_in_use")
+        dark_channels = settings.value("dark_channels")
+        if dark_channels != None:
+            for channel in dark_channels:
+                self.dark_colors_in_use[channel] = settings.value(channel)
+        settings.endGroup()
+
+        settings.beginGroup("light_colors_in_use")
+        light_channels = settings.value("light_channels")
+        if light_channels != None:
+            for channel in light_channels:
+                self.light_colors_in_use[channel] = settings.value(channel)
+        settings.endGroup()
+
+        settings.beginGroup("devices_previously_used")
+        names_of_devices_used = settings.value("names_of_devices_used")
+        if type(names_of_devices_used) == type(" "):
+            names_of_devices_used = [names_of_devices_used]
+
+        for name_of_device in names_of_devices_used:
+            channels = settings.value(name_of_device)
+            if type(channels) == type(" "):
+                channels = [channels]
+            name_of_device = name_of_device.replace("_"," ")
+            self.devices_used[name_of_device] = []
+            for channel in channels:
+                self.devices_used[name_of_device].append(channel)
+        settings.endGroup()
+
+        settings.beginGroup("MainWindow")
+        self.resize(settings.value("size"))
+        settings.endGroup()
+
+        settings.beginGroup("tabs_widget")
+        self.tabs_widget.single_tab_top.currentWindowButton.setChecked(settings.value("single_tab_top_current_btn", type=bool))
+        self.tabs_widget.double_tab_top.currentWindowButton.setChecked(settings.value("double_tab_top_current_btn", type=bool))
+        self.tabs_widget.multiple_tab_top.currentWindowButton.setChecked(settings.value("multiple_tab_top_current_btn", type=bool))
+        self.tabs_widget.single_tab_top.plotWindowButton.setChecked(settings.value("single_tab_top_plot_btn", type=bool))
+        self.tabs_widget.double_tab_top.plotWindowButton.setChecked(settings.value("double_tab_top_plot_btn", type=bool))
+        self.tabs_widget.multiple_tab_top.plotWindowButton.setChecked(settings.value("multiple_tab_top_plot_btn", type=bool))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subSettings")
+        self.subwindow_settings.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_settings.resize(settings.value("size"))
+        self.subwindow_settings.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlots")
+        self.subwindow_plots.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_plots.resize(settings.value("size"))
+        self.subwindow_plots.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlotsSingle")
+        self.subwindow_plots_single.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_plots_single.resize(settings.value("size"))
+        self.subwindow_plots_single.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlotsDouble")
+        self.subwindow_plots_double.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_plots_double.resize(settings.value("size"))
+        self.subwindow_plots_double.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subPlotsMultiple")
+        self.subwindow_plots_multiple.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_plots_multiple.resize(settings.value("size"))
+        self.subwindow_plots_multiple.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrent")
+        self.subwindow_current.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_current.resize(settings.value("size"))
+        self.subwindow_current.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrentSingle")
+        self.subwindow_current_single.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_current_single.resize(settings.value("size"))
+        self.subwindow_current_single.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrentDouble")
+        self.subwindow_current_double.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_current_double.resize(settings.value("size"))
+        self.subwindow_current_double.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subCurrentMultiple")
+        self.subwindow_current_multiple.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_current_multiple.resize(settings.value("size"))
+        self.subwindow_current_multiple.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("mdiArea/subHistorical")
+        self.subwindow_historical.setVisible(settings.value("isVisible",True, type=bool))
+        self.subwindow_historical.resize(settings.value("size"))
+        self.subwindow_historical.move(settings.value("pos"))
+        settings.endGroup()
+
+        settings.beginGroup("menuView")
+        for action in self.menuView.actions():
+            key = action.text().lower().replace(" ","_")
+            if key != "":
+                action.setChecked(settings.value(key, type=bool))
+        settings.endGroup()
 
 def softwareUpdate(splash):
     try:
@@ -1718,7 +1936,6 @@ def softwareUpdate(splash):
             if msg.exec_() == QtWidgets.QMessageBox.Yes:
                 webbrowser.open(url.TARGET_URL)
                 exit()
-
 
 def run():
     from time import sleep
@@ -1745,13 +1962,19 @@ def run():
     splash.close()
 
     main = MainWindow()
-    main.showMaximized()
     main.setWindowIcon(constants.ICON)
 
     main.show2()
-    #main.resize(800, 600)
-    main.mdi.tileSubWindows()
-    main.centerOnScreen()
+    resolution = QtGui.QDesktopWidget().screenGeometry()
+    sw = resolution.width()
+    sh = resolution.height()
+    main.resize(sw, sh)
+
+    try:
+        main.readGuiSettings()
+    except:
+        main.mdi.tileSubWindows()
+    
     app.exec_()
 
 

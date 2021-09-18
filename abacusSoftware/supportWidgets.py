@@ -112,30 +112,15 @@ class currentPlotCheckboxLabelButtons(QWidget):
 
         if self.currentWindowButton.isChecked():
             if label == "Single":
-                #main_window.mdi.addSubWindow(main_window.subwindow_current_single)
                 main_window.subwindow_current_single.show()
-                #for window in main_window.mdi.subWindowList():
-                #    print("trara", window.windowTitle())
-                    #main_window.mdi.activatePreviousSubWindow()
-                #    main_window.mdi.activateNextSubWindow()
                 main_window.mdi.tileSubWindows()
                 menu_action.setChecked(True)
             elif label == "Double":
-                #main_window.mdi.addSubWindow(main_window.subwindow_current_double)
                 main_window.subwindow_current_double.show()
-                #for window in main_window.mdi.subWindowList():
-                #    print("trara", window.windowTitle())
-                    #main_window.mdi.activatePreviousSubWindow()
-                #    main_window.mdi.activateNextSubWindow()
                 main_window.mdi.tileSubWindows()
                 menu_action.setChecked(True)
             elif label == "Multiple":
-                #main_window.mdi.addSubWindow(main_window.subwindow_current_multiple)
                 main_window.subwindow_current_multiple.show()
-                #for window in main_window.mdi.subWindowList():
-                #    print("trara", window.windowTitle())
-                    #main_window.mdi.activatePreviousSubWindow()
-                #    main_window.mdi.activateNextSubWindow()
                 main_window.mdi.tileSubWindows()
                 menu_action.setChecked(True)
         elif not self.currentWindowButton.isChecked():
@@ -164,30 +149,15 @@ class currentPlotCheckboxLabelButtons(QWidget):
 
         if self.plotWindowButton.isChecked():
             if label == "Single":
-                #main_window.mdi.addSubWindow(main_window.subwindow_plots_single)
                 main_window.subwindow_plots_single.show()
-                #for window in main_window.mdi.subWindowList():
-                #    print("trara", window.windowTitle())
-                    #main_window.mdi.activatePreviousSubWindow()
-                #    main_window.mdi.activateNextSubWindow()
                 main_window.mdi.tileSubWindows()
                 menu_action.setChecked(True)
             elif label == "Double":
-                #main_window.mdi.addSubWindow(main_window.subwindow_plots_double)
                 main_window.subwindow_plots_double.show()
-                #for window in main_window.mdi.subWindowList():
-                #    print("trara", window.windowTitle())
-                    #main_window.mdi.activatePreviousSubWindow()
-                #    main_window.mdi.activateNextSubWindow()
                 main_window.mdi.tileSubWindows()
                 menu_action.setChecked(True)
             elif label == "Multiple":
-                #main_window.mdi.addSubWindow(main_window.subwindow_plots_multiple)
                 main_window.subwindow_plots_multiple.show()
-                #for window in main_window.mdi.subWindowList():
-                #    print("trara", window.windowTitle())
-                    #main_window.mdi.activatePreviousSubWindow()
-                #    main_window.mdi.activateNextSubWindow()
                 main_window.mdi.tileSubWindows()
                 menu_action.setChecked(True)
         elif not self.plotWindowButton.isChecked():
@@ -296,10 +266,7 @@ class Tabs(QFrame):
 
     def createSingle(self, letter, layout, letters):
         widget = QCheckBox(letter)
-        if letter == 'A' or letter == 'B' or letter == 'AB':
-            widget.setChecked(True)
-        else:
-            widget.setChecked(False)
+        widget.setChecked(False)
         setattr(self, letter, widget)
         if len(letter) == 1:
             n_widgets_created = len(self.single_tab.findChildren(QCheckBox))
@@ -308,6 +275,7 @@ class Tabs(QFrame):
         elif len(letter) == 3 or len(letter) == 4:
             n_widgets_created = len(self.multiple_tab.findChildren(QCheckBox))
  
+        # Puts the checkboxes in two columns
         if n_widgets_created < len(letters)/2:
             row = n_widgets_created
             layout.addWidget(widget, row, 0)
@@ -397,6 +365,15 @@ class Tabs(QFrame):
             self.multiple_checked = self.multiple_checked[:(self.number_channels - n_new_elements_in_multiple_checked)]
 
         self.signal()
+
+    def simplyCheck(self, letters):
+        """Checks any checkbox associated with the list of letters
+           Args:
+                letters: a list of the letters whoses checboxes are to be checked
+
+        """
+        for letter in letters:
+            getattr(self, letter).setChecked(True)
 
     def setChecked(self, letters):
         if len(letters) <= 2:
@@ -705,6 +682,7 @@ class ConnectDialog(QtWidgets.QDialog):
             self.label.setText(constants.CONNECT_LABEL)
         self.comboBox.addItems(ports_names)
         self.adjustSize()
+        return ports_names
 
     def clear(self):
         self.comboBox.clear()
@@ -1001,6 +979,24 @@ class SubWindow(QtWidgets.QMdiSubWindow):
         self.parent.legend_multiple.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
         QtWidgets.QMdiSubWindow.resizeEvent(self, event)
 
+    def moveEvent(self, event):
+        if self.parent.width() == QtGui.QDesktopWidget().screenGeometry().width():
+            pos = event.pos()
+            right = pos.x() + self.width()
+            down = pos.y() + self.height()
+            left = pos.x()
+            area = self.mdiArea()
+
+            if right > area.width():
+                self.move(area.width() - self.width(), pos.y())
+                return
+            elif down > area.height():
+                self.move(pos.x(), area.height() - self.height())
+                return
+            elif left < 0:
+                self.move(0, pos.y())
+                return
+
 class ClickableLineEdit(QtGui.QLineEdit):
     clicked = QtCore.pyqtSignal()
     def __init__(self, parent = None):
@@ -1149,9 +1145,9 @@ class PlotConfigsDialog(QDialog):
         
         if comboBox.currentText() == "Custom color":
             customColorPicker = QColorDialog()
-            customColorPicker.setOption(QColorDialog.DontUseNativeDialog)
-            customColorPicker.exec_()
-            color_selected = customColorPicker.currentColor().name()
+            color_selected = customColorPicker.getColor(title="Select custom color",
+                                options=QColorDialog.DontUseNativeDialog)
+            color_selected = color_selected.name()
             comboBox.blockSignals(True)
             self.painter = QtGui.QPainter(self.img)
             self.painter.fillRect(self.rect, QColor(color_selected))

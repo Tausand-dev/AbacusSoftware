@@ -45,7 +45,7 @@ COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
 COLORS_NAMES = ['Blue', 'Orange', 'Green', 'Red', 'Purple', 
         'Brown', 'Pink', 'Gray', 'Olive', 'Cyan'] # Names from Matplotlib
 
-DARK_COLORS = ["#ffffff", "#20fc03", "#feffcc", "#b4c4fd", "#b4fdB9", 
+DARK_COLORS = ["#ffffff", "#20fc03", "#feffcc", "#b4c4fd", "#b4fdb9", 
         "#dcb4fd", "#03fcec", "#fc6467", "#e9e21c", "#fc03df"]
 DARK_COLORS_NAMES = ['White', 'Harlequin', 'Cream', 'Melrose', 'Reef', 
         'Mauve', 'Aqua', 'Carnation', 'Sunflower', 'Pizzazz'] # Names from https://chir.ag/projects/name-that-color
