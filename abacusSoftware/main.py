@@ -43,7 +43,7 @@ def getCombinations(n_channels):
     letters = [chr(i + ord('A')) for i in range(n_channels)]
     joined = "".join(letters)
     for i in range(2, n_channels + 1):
-        letters += ["".join(pair) for pair in combinations(joined, i)]
+        letters += ["".join(pair) for pair in combinations(joined, i) if len(pair) <=4 ]
     return letters
 
 common.readConstantsFile()
@@ -359,9 +359,6 @@ class MainWindow(QMainWindow):
 
         self.delaySweepDialog = builtin.DelayDialog(self)
         self.sleepSweepDialog = builtin.SleepDialog(self)
-
-        #self.mdi.tileSubWindows()
-        #self.mdi.cascadeSubWindows()
 
         self.setLightTheme()
         self.setSettings()
@@ -818,6 +815,8 @@ class MainWindow(QMainWindow):
             nColors = len(constants.COLORS)
 
         nSymbols = len(constants.SYMBOLS)
+        #print('symbolSize', self.symbolSize)
+        #print('linewidth', self.linewidth)
 
         for i,channel in enumerate(self.active_channels):
 
@@ -1605,7 +1604,7 @@ class MainWindow(QMainWindow):
                         val = counters.getValue("custom_c%d" % i)
                         i += 1
                     else:
-                        val = 0
+                        val = -1
                     values.append(val)
 
             values = np.array([time_, id] + values)
@@ -1805,6 +1804,10 @@ class MainWindow(QMainWindow):
                 settings.setValue(key, action.isChecked())
         settings.endGroup()
 
+        settings.setValue("time_range_for_plots", self.plots_combo_box.currentIndex())
+        settings.setValue("symbol_size", self.symbolSize)
+        settings.setValue("linewidth", self.linewidth)
+
     def readGuiSettings(self):
         settings = QtCore.QSettings("Tausand", "Abacus_Software")
 
@@ -1916,6 +1919,14 @@ class MainWindow(QMainWindow):
             if key != "":
                 action.setChecked(settings.value(key, type=bool))
         settings.endGroup()
+
+        #print(settings.value("time_range_for_plots"))
+        #print(settings.value("symbol_size"))
+        #print(settings.value("linewidth"))
+
+        #self.plots_combo_box.setCurrentIndex(settings.value("time_range_for_plots"))
+        #self.symbolSize = settings.value("symbol_size")
+        #self.linewidth = settings.value("linewidth")
 
 def softwareUpdate(splash):
     try:

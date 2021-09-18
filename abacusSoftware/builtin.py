@@ -87,6 +87,7 @@ class SweepDialogBase(QDialog):
 
         self.formLayout.addRow(samplingLabel, self.samplingLabel)
         self.formLayout.addRow(coincidenceLabel, self.coincidenceLabel)
+        self.rowIndexOfCoincidenceLabel = self.formLayout.rowCount()
         self.formLayout.addRow(startLabel, self.startSpin)
         self.formLayout.addRow(stopLabel, self.stopSpin)
         self.formLayout.addRow(stepLabel, self.stepSpin)
@@ -99,7 +100,7 @@ class SweepDialogBase(QDialog):
         self.verticalLayout.addWidget(self.startStopButton, alignment = QtCore.Qt.AlignRight)
 
         self.plot_win = pg.GraphicsLayoutWidget()
-        self.plot = self.plot_win.addPlot(row=1, col=0)
+        self.plot = self.plot_win.addPlot(row=2, col=0)
 
         self.sideBySideLayout = QHBoxLayout(self)
         self.sideBySideLayout.addWidget(self.left_frame)
@@ -249,6 +250,7 @@ class DelayDialog(SweepDialogBase):
 
         self.formLayout.insertRow(0, QLabel("Channel 2:"), self.comboBox2)
         self.formLayout.insertRow(0, QLabel("Channel 1:"), self.comboBox1)
+        self.rowIndexOfCoincidenceLabel += 2 
 
         self.startSpin.setMinimum(-abacus.constants.DELAY_MAXIMUM_VALUE)
         self.startSpin.setMaximum(abacus.constants.DELAY_MAXIMUM_VALUE - abacus.constants.DELAY_STEP_VALUE)
@@ -269,12 +271,11 @@ class DelayDialog(SweepDialogBase):
         self.y_datach2 = []
 
         self.plot_singles = self.plot_win.addPlot(row=0, col=0)
+        self.plot_channel2 = self.plot_win.addPlot(row=1, col=0)
+        
         symbolSize = 5
         self.plot_line1 = self.plot_singles.plot(pen = "r", symbol='o', symbolPen = "r", symbolBrush="r", symbolSize=symbolSize)
-        self.plot_line2 = self.plot_singles.plot(pen = "r", symbol='o', symbolPen = "r", symbolBrush="r", symbolSize=symbolSize)
-
-        self.plot_singles.setLabel('left', "Counts")
-        self.plot_singles.setLabel('bottom', "Delay time", units='ns')
+        self.plot_line2 = self.plot_channel2.plot(pen = "r", symbol='o', symbolPen = "r", symbolBrush="r", symbolSize=symbolSize)
 
         self.plot.setLabel('left', "Coincidences")
         self.plot.setLabel('bottom', "Delay time", units='ns')
@@ -284,6 +285,23 @@ class DelayDialog(SweepDialogBase):
         i2 = self.comboBox2.currentIndex()
         if(i1 == i2):
             self.comboBox2.setCurrentIndex((i1 + 1) % self.number_channels)
+
+        channel1 = self.comboBox1.currentText()
+        channel2 = self.comboBox2.currentText()
+
+        self.plot_singles.setLabel('left', "Counts " + channel1)
+        self.plot_singles.setLabel('bottom', "Delay time", units='ns')
+
+        self.plot_channel2.setLabel('left', "Counts " + channel2)
+        self.plot_channel2.setLabel('bottom', 'Delay time', units='ns')
+
+        if channel2 > channel1:
+            channel12 = channel1+channel2
+        else:
+            channel12 = channel2+channel1
+
+        self.plot.setLabel('left', "Coincidences " + channel12)
+        self.plot.setLabel('bottom', "Delay time", units='ns')
 
     def createComboBox(self):
         self.comboBox2 = QComboBox()
@@ -324,18 +342,75 @@ class DelayDialog(SweepDialogBase):
     def updatePlot(self):
         if constants.IS_LIGHT_THEME: 
             colors_symbols = self.parent.light_colors_in_use
-            legend_color = QtGui.QColor('#000000')
+            predefined_colors = constants.COLORS
+            nColors = len(constants.COLORS)
         else: 
             colors_symbols = self.parent.dark_colors_in_use
-            legend_color = QtGui.QColor('#ffffff')
+            predefined_colors = constants.DARK_COLORS
+            nColors = len(constants.DARK_COLORS)
+
+        nSymbols = len(constants.SYMBOLS)
 
         channel1 = self.comboBox1.currentText()
         channel2 = self.comboBox2.currentText()
+        if channel2 > channel1:
+            channel12 = channel1+channel2
+        else:
+            channel12 = channel2+channel1
 
-        color1 = colors_symbols[channel1][0]
-        symbol1 = colors_symbols[channel1][1]
-        color2 = colors_symbols[channel2][0]
-        symbol2 = colors_symbols[channel2][1]
+        if channel1 not in colors_symbols.keys():
+            last_color_used, last_symbol_used = list(colors_symbols.values())[-1]
+            if last_color_used in predefined_colors:
+                index_color = predefined_colors.index(last_color_used)
+            else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
+                index_color = np.random.randint(0, nColors)
+            index_symbol = constants.SYMBOLS.index(last_symbol_used)
+            if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
+                index_color = -1
+            if index_symbol == (nSymbols - 1): 
+                index_symbol = -1
+            color1 = predefined_colors[index_color + 1]
+            symbol1 = constants.SYMBOLS[index_symbol + 1]
+            colors_symbols[channel1] = [color1, symbol1]
+        else:
+            color1 = colors_symbols[channel1][0]
+            symbol1 = colors_symbols[channel1][1]
+
+        if channel2 not in colors_symbols.keys():
+            last_color_used, last_symbol_used = list(colors_symbols.values())[-1]
+            if last_color_used in predefined_colors:
+                index_color = predefined_colors.index(last_color_used)
+            else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
+                index_color = np.random.randint(0, nColors)
+            index_symbol = constants.SYMBOLS.index(last_symbol_used)
+            if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
+                index_color = -1
+            if index_symbol == (nSymbols - 1): 
+                index_symbol = -1
+            color2 = predefined_colors[index_color + 1]
+            symbol2 = constants.SYMBOLS[index_symbol + 1]
+            colors_symbols[channel2] = [color2, symbol2]
+        else:
+            color2 = colors_symbols[channel2][0]
+            symbol2 = colors_symbols[channel2][1]
+
+        if channel12 not in colors_symbols.keys():
+            last_color_used, last_symbol_used = list(colors_symbols.values())[-1]
+            if last_color_used in predefined_colors:
+                index_color = predefined_colors.index(last_color_used)
+            else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
+                index_color = np.random.randint(0, nColors)
+            index_symbol = constants.SYMBOLS.index(last_symbol_used)
+            if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
+                index_color = -1
+            if index_symbol == (nSymbols - 1): 
+                index_symbol = -1
+            color = predefined_colors[index_color + 1]
+            symbol = constants.SYMBOLS[index_symbol + 1]
+            colors_symbols[channel12] = [color, symbol]
+        else:
+            color = colors_symbols[channel12][0]
+            symbol = colors_symbols[channel12][1]
 
         symbolSize = self.parent.symbolSize
         self.plot_line1.opts['pen'] = color1
@@ -350,14 +425,15 @@ class DelayDialog(SweepDialogBase):
         self.plot_line2.opts['symbolBrush'] = color2
         self.plot_line2.opts['symbolSize'] = symbolSize
 
+        self.plot_line.opts['pen'] = color
+        self.plot_line.opts['symbol'] = symbol
+        self.plot_line.opts['symbolPen'] = color
+        self.plot_line.opts['symbolBrush'] = color
+        self.plot_line.opts['symbolSize'] = symbolSize
+
         self.plot_line.setData(self.x_data, self.y_data)
         self.plot_line1.setData(self.x_data, self.y_datach1)
         self.plot_line2.setData(self.x_data, self.y_datach2)
-
-        self.legend = self.plot_singles.addLegend(verSpacing=-8, labelTextColor=legend_color)
-        self.legend.setLabelTextColor(legend_color)
-        self.legend.setParentItem(self.plot_singles)
-        #self.legend.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
 
         if self.error != None:
             self.parent.errorWindow(self.error)
@@ -408,6 +484,10 @@ class DelayDialog(SweepDialogBase):
         port = self.parent.port_name
         channel1 = self.comboBox1.currentText()
         channel2 = self.comboBox2.currentText()
+        if channel2 > channel1:
+            channel12 = channel1+channel2
+        else:
+            channel12 = channel2+channel1
         if port != None:
             try:
                 for delay in range_:
@@ -441,14 +521,11 @@ class DelayDialog(SweepDialogBase):
                         for j in range(constants.NUMBER_OF_TRIES):
                             if self.completed: return
                             try:
-                                counters, id = abacus.getFollowingCounters(port, [channel1 + channel2, channel1, channel2])
+                                counters, id = abacus.getFollowingCounters(port, [channel12, channel1, channel2])
                                 if (id != last_id) and (id != 0):
-                                    value += counters.getValue(channel1 + channel2)
+                                    value += counters.getValue(channel12)
                                     valuech1 += counters.getValue(channel1) #(new sept-15-2021)
-                                    print(valuech1)
                                     valuech2 += counters.getValue(channel2) #(new sept-15-2021)
-                                    print(valuech2)
-                                    print("")
                                     last_id = id
                                     break
                                 else:
@@ -480,6 +557,15 @@ class DelayDialog(SweepDialogBase):
 
         self.comboBox1.blockSignals(False)
         self.comboBox2.blockSignals(False)
+
+        channel1 = self.comboBox1.currentText()
+        channel2 = self.comboBox2.currentText()
+        if channel2 > channel1:
+            channel12 = channel1+channel2
+        else:
+            channel12 = channel2+channel1
+        self.plot.setLabel('left', "Coincidences " + channel12)
+        self.plot.setLabel('bottom', "Delay time", units='ns')
 
     def updateConstants(self): #new on v1.4.0 (2020-06-30)
         try:
@@ -513,6 +599,11 @@ class DelayDialog(SweepDialogBase):
         self.plot_singles.getAxis('bottom').setTextPen(whitePen)
         self.plot_singles.getAxis('left').setTextPen(whitePen)
 
+        self.plot_channel2.getAxis('bottom').setPen(whitePen)
+        self.plot_channel2.getAxis('left').setPen(whitePen)
+        self.plot_channel2.getAxis('bottom').setTextPen(whitePen)
+        self.plot_channel2.getAxis('left').setTextPen(whitePen)
+
     def setLightTheme(self):
         self.plot_win.setBackground(None)
         blackPen = pg.mkPen(color=(0, 0, 0))
@@ -526,10 +617,16 @@ class DelayDialog(SweepDialogBase):
         self.plot_singles.getAxis('bottom').setTextPen(blackPen)
         self.plot_singles.getAxis('left').setTextPen(blackPen)
 
+        self.plot_channel2.getAxis('bottom').setPen(blackPen)
+        self.plot_channel2.getAxis('left').setPen(blackPen)
+        self.plot_channel2.getAxis('bottom').setTextPen(blackPen)
+        self.plot_channel2.getAxis('left').setTextPen(blackPen)
+
 class SleepDialog(SweepDialogBase):
     def __init__(self, parent):
         super(SleepDialog, self).__init__(parent)
 
+        self.formLayout.takeRow(self.rowIndexOfCoincidenceLabel-1)
         self.parent = parent
 
         self.setWindowTitle("Sleep time sweep")
@@ -670,3 +767,41 @@ class SleepDialog(SweepDialogBase):
             self.stepSpin.setValue(abacus.constants.SLEEP_STEP_VALUE) #new on v1.4.0 (2020-06-30)
         except AttributeError as e:
             if abacus.constants.DEBUG: print(e)
+
+    def updatePlot(self):
+        if constants.IS_LIGHT_THEME: 
+            colors_symbols = self.parent.light_colors_in_use
+        else: 
+            colors_symbols = self.parent.dark_colors_in_use
+
+        channel = self.comboBox.currentText()
+
+        color = colors_symbols[channel][0]
+        symbol = colors_symbols[channel][1]
+
+        symbolSize = self.parent.symbolSize
+        self.plot_line.opts['pen'] = color
+        self.plot_line.opts['symbol'] = symbol
+        self.plot_line.opts['symbolPen'] = color
+        self.plot_line.opts['symbolBrush'] = color
+        self.plot_line.opts['symbolSize'] = symbolSize
+
+        self.plot_line.setData(self.x_data, self.y_data)
+        if self.error != None:
+            self.parent.errorWindow(self.error)
+            self.error = None
+
+        if self.completed:
+            if self.fileName != "":
+                file = File(self.fileName, self.header)
+                data = np.vstack((self.x_data, self.y_data)).T
+                file.npwrite(data, "%d" + constants.DELIMITER + "%d")
+
+            self.x_data = []
+            self.y_data = []
+            self.timer.stop()
+            self.completed = False
+            self.startStopButton.setText("Start")
+            self.startStopButton.setStyleSheet("background-color: none")
+            self.enableWidgets(True)
+            self.parent.check_timer.start()
