@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import traceback
-import qdarkstyle
 import numpy as np
 import abacusSoftware.__GUI_images__
 import pyqtgraph as pg
