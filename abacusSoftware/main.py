@@ -35,8 +35,6 @@ from abacusSoftware.supportWidgets import Table, CurrentLabels, ConnectDialog, \
 
 import pyAbacus as abacus
 
-import breeze_resources
-
 STDOUT = None
 
 def getCombinations(n_channels):
