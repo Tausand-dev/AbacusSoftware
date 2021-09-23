@@ -2,7 +2,7 @@ import os
 import sys
 import pyAbacus as abacus
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 CURRENT_OS = sys.platform
 DIRECTORY = os.path.dirname(sys.executable)

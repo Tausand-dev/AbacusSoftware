@@ -246,8 +246,6 @@ class DelayDialog(SweepDialogBase):
         self.comboBox1.currentIndexChanged.connect(self.channelsChange)
         self.comboBox2.currentIndexChanged.connect(self.channelsChange)
 
-        self.setNumberChannels(4)
-
         self.formLayout.insertRow(0, QLabel("Channel 2:"), self.comboBox2)
         self.formLayout.insertRow(0, QLabel("Channel 1:"), self.comboBox1)
         self.rowIndexOfCoincidenceLabel += 2 
@@ -277,8 +275,7 @@ class DelayDialog(SweepDialogBase):
         self.plot_line1 = self.plot_singles.plot(pen = "r", symbol='o', symbolPen = "r", symbolBrush="r", symbolSize=symbolSize)
         self.plot_line2 = self.plot_channel2.plot(pen = "r", symbol='o', symbolPen = "r", symbolBrush="r", symbolSize=symbolSize)
 
-        self.plot.setLabel('left', "Coincidences")
-        self.plot.setLabel('bottom', "Delay time", units='ns')
+        self.setNumberChannels(4)
 
     def channelsChange(self, index):
         i1 = self.comboBox1.currentIndex()
@@ -560,6 +557,13 @@ class DelayDialog(SweepDialogBase):
 
         channel1 = self.comboBox1.currentText()
         channel2 = self.comboBox2.currentText()
+
+        self.plot_singles.setLabel('left', "Counts " + channel1)
+        self.plot_singles.setLabel('bottom', "Delay time", units='ns')
+
+        self.plot_channel2.setLabel('left', "Counts " + channel2)
+        self.plot_channel2.setLabel('bottom', 'Delay time', units='ns')
+
         if channel2 > channel1:
             channel12 = channel1+channel2
         else:

@@ -378,6 +378,8 @@ class MainWindow(QMainWindow):
             elif len(channel) == 3 or len(channel) == 4:
                 self.active_channels_multiple.append(channel)
 
+        self.tabs_widget.reviewCheckBoxes()
+
         self.initPlots()
         self.current_labels.createLabels(self.active_channels, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_single.createLabels(self.active_channels_single, self.light_colors_in_use, self.dark_colors_in_use)
@@ -1917,13 +1919,9 @@ class MainWindow(QMainWindow):
                 action.setChecked(settings.value(key, type=bool))
         settings.endGroup()
 
-        #print(settings.value("time_range_for_plots"))
-        #print(settings.value("symbol_size"))
-        #print(settings.value("linewidth"))
-
-        #self.plots_combo_box.setCurrentIndex(settings.value("time_range_for_plots"))
-        #self.symbolSize = settings.value("symbol_size")
-        #self.linewidth = settings.value("linewidth")
+        self.plots_combo_box.setCurrentIndex(settings.value("time_range_for_plots", type=int))
+        self.symbolSize = settings.value("symbol_size", type=int)
+        self.linewidth = settings.value("linewidth", type=int)
 
 def softwareUpdate(splash):
     try:

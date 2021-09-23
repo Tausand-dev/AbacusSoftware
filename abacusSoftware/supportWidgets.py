@@ -333,6 +333,12 @@ class Tabs(QFrame):
     def getChecked(self):
         return [letter for letter in self.all if getattr(self, letter).isChecked()]
 
+    def getSinglesChecked(self):
+        return [letter for letter in self.letters if getattr(self, letter).isChecked()]
+
+    def getDoublesChecked(self):
+        return [letter for letter in self.double if getattr(self, letter).isChecked()]
+
     def signal(self):
         self.parent.activeChannelsChanged(self.getChecked())
 
@@ -367,7 +373,7 @@ class Tabs(QFrame):
         self.signal()
 
     def simplyCheck(self, letters):
-        """Checks any checkbox associated with the list of letters
+        """Checks any checkbox associated with the list of letters. This function is used to restore the previous session settings.
            Args:
                 letters: a list of the letters whoses checboxes are to be checked
 
@@ -429,6 +435,28 @@ class Tabs(QFrame):
 
     def getParent(self):
         return self.parent
+
+    def reviewCheckBoxes(self):
+        """If all checkboxes of a section (Single or Double) are checked, the main CheckBox of the section should be checked"""
+        if len(self.getSinglesChecked()) == self.number_channels:
+            self.single_tab_top.checkbox.blockSignals(True)
+            self.single_tab_top.checkbox.setChecked(True)
+            self.single_tab_top.checkbox.blockSignals(False)
+        else:
+            self.single_tab_top.checkbox.blockSignals(True)
+            self.single_tab_top.checkbox.setChecked(False)
+            self.single_tab_top.checkbox.blockSignals(False)
+
+        n = self.number_channels
+
+        if len(self.getDoublesChecked()) == n*(n-1)/2:
+            self.double_tab_top.checkbox.blockSignals(True)
+            self.double_tab_top.checkbox.setChecked(True)
+            self.double_tab_top.checkbox.blockSignals(False)
+        else:
+            self.double_tab_top.checkbox.blockSignals(True)
+            self.double_tab_top.checkbox.setChecked(False)
+            self.double_tab_top.checkbox.blockSignals(False)
 
 class Table(QtWidgets.QTableWidget):
     def __init__(self, active_labels, active_indexes):
