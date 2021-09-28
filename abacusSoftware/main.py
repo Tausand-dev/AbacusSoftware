@@ -678,13 +678,13 @@ class MainWindow(QMainWindow):
                 else:
                     channels = self.devices_used[self.port_name]
                     self.tabs_widget.simplyCheck(channels)
-
             else:
                 self.connect_button.setText("Connect")
                 self.acquisition_button.setDisabled(True)
                 self.statusBar.setStyleSheet("")
                 self.statusBar.showMessage("")
-                abacus.setStatusMessage("")
+                
+            abacus.setStatusMessage("")
 
         self.tabs_widget.updateBtnsStatus()
 
@@ -978,7 +978,15 @@ class MainWindow(QMainWindow):
                         self.refresh_timer.setInterval(value*0.1)
                     else:
                         self.refresh_timer.setInterval(constants.DATA_REFRESH_RATE)
-                    self.data_timer.setInterval(value)
+                    # 27-sept-2021 The following if-else block was added to prevent the app from crashing.
+                    # Previously, only the line after the else was included. Therefore, when sampling times
+                    # shorter than 20 ms where chosen, self.data_timer was assigned a small interval which 
+                    # caused the function updateData to be called indefinitely and the app would crash.
+                    # Something inside the functions writeGuiSettings() and readGuiSettings() is probably causing this
+                    if value < 100:
+                        self.data_timer.setInterval(100)
+                    else:
+                        self.data_timer.setInterval(value)
                     self.writeParams("Sampling time (ms), %s" % value)
                 # except abacus.InvalidValueError as e:
                 #     self.sampling_widget.invalid()
