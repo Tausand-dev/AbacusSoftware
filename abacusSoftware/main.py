@@ -1978,11 +1978,12 @@ def run():
     main = MainWindow()
     main.setWindowIcon(constants.ICON)
 
-    main.show2()
     resolution = QtGui.QDesktopWidget().screenGeometry()
     sw = resolution.width()
     sh = resolution.height()
     main.resize(sw, sh)
+    main.centerOnScreen()
+    main.show2()
 
     try:
         main.readGuiSettings()
