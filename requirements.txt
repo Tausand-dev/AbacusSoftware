@@ -5,7 +5,7 @@ numpy==1.19.0
 setuptools==41.2.0
 #pkg-resources>=0.0.0
 pyAbacus==1.1.0
-PyInstaller==3.6
+PyInstaller==4.3
 PyQt5==5.15.0
 pyqtgraph==0.11.0
 pyserial==3.4

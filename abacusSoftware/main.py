@@ -9,7 +9,6 @@ from datetime import datetime
 from itertools import combinations
 from time import time, localtime, strftime, sleep
 import qtmodern.styles
-import qtmodern.windows
 
 from serial.serialutil import SerialException, SerialTimeoutException
 
