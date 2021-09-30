@@ -242,7 +242,6 @@ class Tabs(QFrame):
         self.btn_all_currents_subwindow = QPushButton("Current")
         self.btn_all_currents_subwindow.setCheckable(True)
         self.btn_all_currents_subwindow.setFlat(True)
-        self.btn_all_currents_subwindow.setMinimumSize(self.btn_all_currents_subwindow.minimumSizeHint())
         self.btn_all_currents_subwindow.clicked.connect(self.onToggledCurrent)
         self.btn_all_plots_subwindow = QPushButton("Plots")
         self.btn_all_plots_subwindow.setCheckable(True)
