@@ -400,14 +400,14 @@ class MainWindow(QMainWindow):
             self.devices_used[self.port_name] = self.active_channels
 
     def centerOnScreen(self):
-        resolution = QtGui.QDesktopWidget().screenGeometry()
-        x_0 = self.pos().x()
-        y_0 = self.pos().y()
+        resolution = QtGui.QDesktopWidget().availableGeometry()
         sw = resolution.width()
         sh = resolution.height()
         fh = self.frameSize().height()
+        fw = self.frameSize().width()
         y_o = (sh - fh) / 2
-        self.move(sw / 2 - x_0, y_o)
+        x_o = (sw - fw) / 2
+        self.move(x_o, y_o)
 
     def checkFileName(self, name):
         if "." in name:
@@ -1977,20 +1977,16 @@ def run():
     main = MainWindow()
     main.setWindowIcon(constants.ICON)
 
-    resolution = QtGui.QDesktopWidget().screenGeometry()
-    sw = resolution.width()
-    sh = resolution.height()
-    main.resize(sw, sh)
-    main.centerOnScreen()
     main.show2()
 
     try:
         main.readGuiSettings()
+        main.centerOnScreen()
     except:
+        main.showMaximized()
         main.mdi.tileSubWindows()
-    
-    app.exec_()
 
+    app.exec_()
 
 def exceptHook(exctype, value, tb):
     print('Type:', exctype)
