@@ -814,8 +814,6 @@ class MainWindow(QMainWindow):
             nColors = len(constants.COLORS)
 
         nSymbols = len(constants.SYMBOLS)
-        #print('symbolSize', self.symbolSize)
-        #print('linewidth', self.linewidth)
 
         for i,channel in enumerate(self.active_channels):
 
