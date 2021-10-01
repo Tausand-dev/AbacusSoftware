@@ -1692,7 +1692,7 @@ class MainWindow(QMainWindow):
             print("writeParams ignored: %s" % message)
 
     def writeGuiSettings(self):
-        settings = QtCore.QSettings("Tausand", "Abacus_Software")
+        settings = QtCore.QSettings("tausand", "abacus_software")
 
         settings.beginGroup("dark_colors_in_use")
         if self.dark_colors_in_use != {}:
@@ -1730,6 +1730,7 @@ class MainWindow(QMainWindow):
 
         settings.beginGroup("MainWindow")
         settings.setValue("size", self.size())
+        settings.setValue("pos", self.pos())
         settings.endGroup()
 
         settings.beginGroup("tabs_widget")
@@ -1813,7 +1814,7 @@ class MainWindow(QMainWindow):
         settings.setValue("linewidth", self.linewidth)
 
     def readGuiSettings(self):
-        settings = QtCore.QSettings("Tausand", "Abacus_Software")
+        settings = QtCore.QSettings("tausand", "abacus_software")
 
         settings.beginGroup("dark_colors_in_use")
         dark_channels = settings.value("dark_channels")
@@ -1846,6 +1847,7 @@ class MainWindow(QMainWindow):
 
         settings.beginGroup("MainWindow")
         self.resize(settings.value("size"))
+        self.move(settings.value("pos"))
         settings.endGroup()
 
         settings.beginGroup("tabs_widget")
@@ -1974,12 +1976,10 @@ def run():
 
     main = MainWindow()
     main.setWindowIcon(constants.ICON)
-
     main.show2()
 
     try:
         main.readGuiSettings()
-        main.centerOnScreen()
     except:
         main.showMaximized()
         main.mdi.tileSubWindows()
