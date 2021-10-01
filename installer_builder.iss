@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Abacus Software"
-#define MyAppVersion "1.4.0"
+#define MyAppVersion "1.5.0"
 #define MyAppPublisher "Tausand"
 #define MyAppURL "http://www.tausand.com/"
 #define MyAppExeName "AbacusSoftware.exe"
@@ -21,7 +21,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=AbacusSetup
+OutputBaseFilename=AbacusSetup-{#MyAppVersion}
 SetupIconFile=abacusSoftware\GUI\images\abacus_small.ico
 Compression=lzma
 SolidCompression=yes
