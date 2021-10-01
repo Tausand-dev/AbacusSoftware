@@ -807,10 +807,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.datetime_checkBox.setCheckState(2)
         self.parameters_lineEdit.setText(constants.PARAMS_SUFFIX)
         self.file_prefix_lineEdit.setText(constants.FILE_PREFIX)
-        # self.setDirectory()
-        # if not self.verifyDirectory():
-        #     self.directory_lineEdit.setText(common.findDocuments())
-        # else: self.direco
         self.delimiter_comboBox.insertItems(0, constants.DELIMITERS)
         self.extension_comboBox.insertItems(0, sorted(constants.SUPPORTED_EXTENSIONS.keys())[::-1])
 
@@ -956,7 +952,7 @@ class SettingsDialog(QtWidgets.QDialog):
             directory = os.path.normpath(directory)
             documents = os.path.normpath(common.findDocuments())
             e = Exception('The default directory "%s" does not exist.\n\nThe default directory will be set to "%s".' % (directory, documents))
-            self.parent.errorWindow(e)
+            self.parent.showInformationDialog(e, "Default directory path")
         except AttributeError as e:
             pass
         directory = common.findDocuments()

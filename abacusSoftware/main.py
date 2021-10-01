@@ -712,6 +712,15 @@ class MainWindow(QMainWindow):
         self.delaySweepDialog.updateConstants() #new on v1.4.0 (2020-06-30)
         self.delaySweepDialog.show()
 
+    def showInformationDialog(self, exception, title):
+        information_text = str(exception)
+        dialog = QtWidgets.QMessageBox()
+        dialog.setIcon(QtWidgets.QMessageBox.Information)
+        dialog.setWindowTitle(title)
+        dialog.setText(information_text)
+        dialog.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        dialog.exec_()
+
     def errorWindow(self, exception):
         error_text = str(exception)
         msg = QtWidgets.QMessageBox()
