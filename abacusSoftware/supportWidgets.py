@@ -1046,7 +1046,7 @@ class SubWindow(QtWidgets.QMdiSubWindow):
         QtWidgets.QMdiSubWindow.resizeEvent(self, event)
 
     def moveEvent(self, event):
-        if self.parent.width() == QtGui.QDesktopWidget().screenGeometry().width():
+        if self.parent.width() == QtWidgets.QDesktopWidget().screenGeometry().width():
             pos = event.pos()
             right = pos.x() + self.width()
             down = pos.y() + self.height()

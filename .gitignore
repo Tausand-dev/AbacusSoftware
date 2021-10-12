@@ -1,6 +1,7 @@
 /files/*
 /Software/config.py
 /Software/salting.py
+log*txt
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm+all
