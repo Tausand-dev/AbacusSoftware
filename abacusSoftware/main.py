@@ -323,6 +323,7 @@ class MainWindow(QMainWindow):
         self.menuView.addSeparator()
         self.menuView.addAction("Tiled")
         self.menuView.addAction("Cascade")
+        self.menuView.addAction("Default layout")
         self.menuView.addSeparator()
         self.theme_action = self.menuView.addAction("Dark theme")
 
@@ -639,8 +640,14 @@ class MainWindow(QMainWindow):
             self.statusBar.showMessage("")
             abacus.setStatusMessage("")
             self.tabs_widget.clearMultipleChecked()
+            self.tabs_widget.multiple_tab_top.currentWindowButton.setEnabled(False)
+            self.tabs_widget.double_tab_top.currentWindowButton.setEnabled(False)
+            self.tabs_widget.single_tab_top.currentWindowButton.setEnabled(False)
+            self.tabs_widget.multiple_tab_top.plotWindowButton.setEnabled(False)
+            self.tabs_widget.double_tab_top.plotWindowButton.setEnabled(False)
+            self.tabs_widget.single_tab_top.plotWindowButton.setEnabled(False)
         else:
-            self.connect_dialog = ConnectDialog()
+            self.connect_dialog = ConnectDialog(self)
             self.connect_dialog.refresh()
             self.connect_dialog.exec_()
 
@@ -801,6 +808,15 @@ class MainWindow(QMainWindow):
             self.mdi.cascadeSubWindows()
 
         elif text == "Tiled":
+            self.mdi.tileSubWindows()
+
+        elif text == "Default layout":
+            self.subwindow_current_single.hide()
+            self.subwindow_current_double.hide()
+            self.subwindow_current_multiple.hide()
+            self.subwindow_plots_single.hide()
+            self.subwindow_plots_double.hide()
+            self.subwindow_plots_multiple.hide()
             self.mdi.tileSubWindows()
 
         elif 'theme' in text:

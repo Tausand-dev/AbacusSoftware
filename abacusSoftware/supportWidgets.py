@@ -84,12 +84,12 @@ class currentPlotCheckboxLabelButtons(QWidget):
         self.currentWindowButton = QToolButton()
         self.currentWindowButton.setCheckable(True)
         self.currentWindowButton.setAutoRaise(True)
-        self.currentWindowButton.setToolTip("Show or hide current window")
+        self.currentWindowButton.setEnabled(False)
         self.currentWindowButton.clicked.connect(self.showHideCurrentWindow)
         self.plotWindowButton = QToolButton()
         self.plotWindowButton.setCheckable(True)
         self.plotWindowButton.setAutoRaise(True)
-        self.plotWindowButton.setToolTip("Show or hide plot window")
+        self.plotWindowButton.setEnabled(False)
         self.plotWindowButton.clicked.connect(self.showHidePlotWindow)
         self.updateButtonsIcons()
         
@@ -311,6 +311,41 @@ class Tabs(QFrame):
 
         if self.number_channels == 8:
             setattr(self, '', QCheckBox())
+
+        if self.number_channels == 2:
+            self.multiple_tab_top.currentWindowButton.setEnabled(False)
+            self.multiple_tab_top.currentWindowButton.setToolTip("Only available for 4-channel and 8-channel devices")
+            self.multiple_tab_top.plotWindowButton.setEnabled(False)
+            self.multiple_tab_top.plotWindowButton.setToolTip("Only available for 4-channel and 8-channel devices")
+            self.double_tab_top.currentWindowButton.setEnabled(True)
+            self.double_tab_top.plotWindowButton.setEnabled(True)
+            self.double_tab_top.currentWindowButton.setToolTip("Show or hide current window")
+            self.double_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
+            self.single_tab_top.currentWindowButton.setEnabled(True)
+            self.single_tab_top.plotWindowButton.setEnabled(True)
+            self.single_tab_top.currentWindowButton.setToolTip("Show or hide current window")
+            self.single_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
+            self.parent.subwindow_current_multiple.hide()
+            self.parent.subwindow_plots_multiple.hide()
+            for action in self.parent.menuView.actions():
+                if action.text() == "Show current multiple" or action.text() == "Show plots multiple":
+                    action.setEnabled(False) 
+        else:
+            self.multiple_tab_top.currentWindowButton.setEnabled(True)
+            self.multiple_tab_top.plotWindowButton.setEnabled(True)
+            self.multiple_tab_top.currentWindowButton.setToolTip("Show or hide current window")
+            self.multiple_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
+            self.double_tab_top.currentWindowButton.setEnabled(True)
+            self.double_tab_top.plotWindowButton.setEnabled(True)
+            self.double_tab_top.currentWindowButton.setToolTip("Show or hide current window")
+            self.double_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
+            self.single_tab_top.currentWindowButton.setEnabled(True)
+            self.single_tab_top.plotWindowButton.setEnabled(True)
+            self.single_tab_top.currentWindowButton.setToolTip("Show or hide current window")
+            self.single_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
+            for action in self.parent.menuView.actions():
+                if action.text() == "Show current multiple" or action.text() == "Show plots multiple":
+                    action.setEnabled(True) 
 
     def deleteSingle(self, widget, layout):
         layout.removeWidget(widget)
@@ -656,8 +691,9 @@ class CurrentLabels(QtWidgets.QWidget):
         for label in self.labels: label.clearSize()
 
 class ConnectDialog(QtWidgets.QDialog):
-    def __init__(self):
+    def __init__(self, parent):
         QtWidgets.QDialog.__init__(self)
+        self.parent = parent
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setContentsMargins(11, 11, 11, 11)
         self.verticalLayout.setSpacing(6)
@@ -713,6 +749,12 @@ class ConnectDialog(QtWidgets.QDialog):
 
     def clear(self):
         self.comboBox.clear()
+        self.parent.tabs_widget.multiple_tab_top.currentWindowButton.setEnabled(False)
+        self.parent.tabs_widget.double_tab_top.currentWindowButton.setEnabled(False)
+        self.parent.tabs_widget.single_tab_top.currentWindowButton.setEnabled(False)
+        self.parent.tabs_widget.multiple_tab_top.plotWindowButton.setEnabled(False)
+        self.parent.tabs_widget.double_tab_top.plotWindowButton.setEnabled(False)
+        self.parent.tabs_widget.single_tab_top.plotWindowButton.setEnabled(False)
 
     def reject2(self):
         self.clear()
