@@ -15,7 +15,7 @@ setup(
     maintainer="David Guzman",
     maintainer_email="da.guzman@outlook.com",
     description=(
-        "Abacus Software is a suite of tools build to ensure your experience with Tausand's coincidence counters becomes simplified."),
+        "Abacus Software is a suite of tools built to ensure your experience with Tausand's coincidence counters becomes simplified."),
     license="GPL",
     keywords="example documentation tutorial",
     url="https://github.com/Tausand-dev/AbacusSoftware",
