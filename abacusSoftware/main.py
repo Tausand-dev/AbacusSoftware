@@ -280,7 +280,7 @@ class MainWindow(QMainWindow):
         self.menuView = self.menubar.addMenu("View")
         self.menuHelp = self.menubar.addMenu("Help")
 
-        self.menuBuildInSweep = QtGui.QMenu("Sweep")
+        self.menuBuildInSweep = QtWidgets.QMenu("Sweep")
 
         delaySweep = QAction('Delay time', self)
         sleepSweep = QAction('Sleep time', self)
@@ -401,7 +401,7 @@ class MainWindow(QMainWindow):
             self.devices_used[self.port_name] = self.active_channels
 
     def centerOnScreen(self):
-        resolution = QtGui.QDesktopWidget().availableGeometry()
+        resolution = QtWidgets.QDesktopWidget().availableGeometry()
         sw = resolution.width()
         sh = resolution.height()
         fh = self.frameSize().height()
@@ -1316,7 +1316,7 @@ class MainWindow(QMainWindow):
     def subHistorical(self):
         widget = QWidget()
         self.historical_table = Table([], [])
-        self.historical_layout = QtGui.QVBoxLayout(widget)
+        self.historical_layout = QVBoxLayout(widget)
 
         self.historical_layout.setSpacing(0)
         self.historical_layout.setContentsMargins(0, 0, 0, 0)

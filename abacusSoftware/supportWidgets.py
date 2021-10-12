@@ -4,11 +4,11 @@ from itertools import combinations
 
 try:
     from PyQt5 import QtWidgets, QtGui, QtCore
-    from PyQt5.QtGui import QTableWidgetItem, QBrush, QColor, QPixmap, QPen, QIcon
+    from PyQt5.QtGui import QBrush, QColor, QPixmap, QPen, QIcon
     from PyQt5.QtWidgets import QSizePolicy, QTabWidget, QWidget, QCheckBox, \
                         QVBoxLayout, QFrame, QGroupBox, QLabel, QSizePolicy, \
                         QComboBox, QSpinBox, QFormLayout, QDialog, QDialogButtonBox, \
-                        QColorDialog, QHBoxLayout, QGridLayout, QPushButton, QToolButton
+                        QColorDialog, QHBoxLayout, QGridLayout, QPushButton, QToolButton, QTableWidgetItem
 except ModuleNotFoundError:
     from PyQt4 import QtWidgets, QtGui, QtCore
     from PyQt4.QtGui import QTableWidgetItem
@@ -710,7 +710,7 @@ class ConnectDialog(QtWidgets.QDialog):
         self.verticalLayout.addWidget(self.frame)
 
         self.comboBox = QtWidgets.QComboBox()
-        self.comboBox.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.comboBox.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         self.refresh_button = QtWidgets.QPushButton()
         self.refresh_button.setText("Refresh")
@@ -720,8 +720,8 @@ class ConnectDialog(QtWidgets.QDialog):
         self.horizontalLayout.addWidget(self.refresh_button)
 
         self.label.setText(constants.CONNECT_LABEL)
-        self.label.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         self.setWindowTitle("Tausand Abacus device selection")
         self.setMinimumSize(QtCore.QSize(450, 100))
@@ -1063,7 +1063,7 @@ class SubWindow(QtWidgets.QMdiSubWindow):
                 self.move(0, pos.y())
                 return
 
-class ClickableLineEdit(QtGui.QLineEdit):
+class ClickableLineEdit(QtWidgets.QLineEdit):
     clicked = QtCore.pyqtSignal()
     def __init__(self, parent = None):
         super(ClickableLineEdit, self).__init__(parent)
@@ -1071,7 +1071,7 @@ class ClickableLineEdit(QtGui.QLineEdit):
 
     def mousePressEvent(self, event):
         self.clicked.emit()
-        QtGui.QLineEdit.mousePressEvent(self, event)
+        QtWidgets.QLineEdit.mousePressEvent(self, event)
 
 class PlotConfigsDialog(QDialog):
     def __init__(self, img, painter, rect, iconSize, active_channels_plotDataItems, 
