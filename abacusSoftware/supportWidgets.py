@@ -761,7 +761,7 @@ class ConnectDialog(QtWidgets.QDialog):
         self.reject()
 
 class SettingsDialog(QtWidgets.QDialog):
-    MAX_CHANNELS = 4
+    MAX_CHANNELS = 8
     def __init__(self, parent):
         QtWidgets.QDialog.__init__(self)
 
@@ -799,6 +799,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.file_tab_frame1_layout.addWidget(self.directory_label)
         self.file_tab_frame1_layout.addWidget(self.directory_lineEdit)
         self.file_tab_frame1_layout.addWidget(self.directory_pushButton)
+        self.file_tab_frame1.setMaximumHeight(60)
 
         self.file_tab_verticalLayout.addWidget(self.file_tab_frame1)
         self.directory_lineEdit.clicked.connect(self.chooseFolder)
