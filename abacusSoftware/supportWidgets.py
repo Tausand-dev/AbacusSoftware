@@ -846,7 +846,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.theme_checkBox.setChecked(True)
         self.autogenerate_checkBox.setCheckState(2)
         self.check_updates_checkBox.setCheckState(2)
-        self.autogenerate_checkBox.stateChanged.connect(self.actogenerateMethod)
+        self.autogenerate_checkBox.stateChanged.connect(self.autogenerateMethod)
         self.datetime_checkBox.setCheckState(2)
         self.parameters_lineEdit.setText(constants.PARAMS_SUFFIX)
         self.file_prefix_lineEdit.setText(constants.FILE_PREFIX)
@@ -924,7 +924,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.setConstants()
 
-    def actogenerateMethod(self, val):
+    def autogenerateMethod(self, val):
         self.datetime_checkBox.setEnabled(val)
         self.file_prefix_lineEdit.setEnabled(val)
 
