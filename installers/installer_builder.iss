@@ -22,7 +22,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputBaseFilename=AbacusSetup-{#MyAppVersion}
-SetupIconFile=abacusSoftware\GUI\images\abacus_small.ico
+SetupIconFile=..\abacusSoftware\GUI\images\abacus_small.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -34,8 +34,8 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\AbacusSoftware\AbacusSoftware.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\AbacusSoftware\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\AbacusSoftware.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
