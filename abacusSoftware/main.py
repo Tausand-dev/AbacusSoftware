@@ -43,11 +43,14 @@ def getCombinations(n_channels):
     return letters
 
 common.readConstantsFile()
+dirName = common.findDocuments() + "/Tausand"
+if not os.path.exists(dirName):
+    os.mkdir(dirName)
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent)
-        abacus.setLogfilePath(common.findDocuments())
+        abacus.setLogfilePath(dirName)
         self.port_name = None
         self.start_position = None
         self.number_channels = 0

@@ -1,11 +1,16 @@
 import os
 import sys
 import pyAbacus as abacus
+from .common import findDocuments
 
 __version__ = "1.5.0"
 
 CURRENT_OS = sys.platform
-DIRECTORY = os.path.dirname(sys.executable)
+#DIRECTORY = os.path.dirname(sys.executable)
+dirName = findDocuments() + "/Tausand/"
+if not os.path.exists(dirName):
+    os.mkdir(dirName)
+DIRECTORY = dirName
 SETTINGS_PATH = os.path.join(DIRECTORY, "settings.py")
 LOGFILE_PATH = "logfile.txt"
 # LOGFILE_PATH = os.path.join(DIRECTORY, "logfile.txt")
