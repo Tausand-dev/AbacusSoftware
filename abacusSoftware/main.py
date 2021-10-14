@@ -47,6 +47,7 @@ common.readConstantsFile()
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent)
+        abacus.setLogfilePath(common.findDocuments())
         self.port_name = None
         self.start_position = None
         self.number_channels = 0
