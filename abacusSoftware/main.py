@@ -1286,6 +1286,7 @@ class MainWindow(QMainWindow):
                     name += ext
                 self.save_as_lineEdit.setText(common.unicodePath(name))
                 self.setSaveAs()
+                self.settings_dialog.directory_lineEdit.setText(default_directory)
                 self.startAcquisition()
 
     def startClocks(self):
