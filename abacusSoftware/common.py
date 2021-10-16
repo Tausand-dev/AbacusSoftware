@@ -1,5 +1,5 @@
 import os
-import abacusSoftware.constants as constants
+from abacusSoftware import constants
 import pyAbacus as abacus
 from PyQt5 import QtGui
 
