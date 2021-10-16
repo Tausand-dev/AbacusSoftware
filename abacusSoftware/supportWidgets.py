@@ -941,6 +941,8 @@ class SettingsDialog(QtWidgets.QDialog):
                 val = eval(eval_%item)
                 if type(val) is str:
                     if item == "directory_lineEdit":
+                        if val == "":
+                            val = self.parent.getWorkingDirectory()
                         val = common.unicodePath(val)
                     string = "%s = '%s'"%(item, val)
                 else:

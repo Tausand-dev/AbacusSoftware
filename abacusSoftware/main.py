@@ -42,15 +42,10 @@ def getCombinations(n_channels):
         letters += ["".join(pair) for pair in combinations(joined, i) if len(pair) <=4 ]
     return letters
 
-common.readConstantsFile()
-dirName = common.findDocuments() + "/Tausand"
-if not os.path.exists(dirName):
-    os.mkdir(dirName)
-
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent)
-        abacus.setLogfilePath(dirName)
+        abacus.setLogfilePath(self.getWorkingDirectory())
         self.port_name = None
         self.start_position = None
         self.number_channels = 0
@@ -364,6 +359,13 @@ class MainWindow(QMainWindow):
         self.setLightTheme()
         self.setSettings()
         self.updateConstants()
+
+    def getWorkingDirectory(self):
+        common.readConstantsFile()
+        dirName = common.findDocuments() + "/Tausand"
+        if not os.path.exists(dirName):
+            os.mkdir(dirName)
+        return dirName
 
     def aboutWindowCaller(self):
         self.about_window.show()
@@ -1270,7 +1272,21 @@ class MainWindow(QMainWindow):
             if self.init_time == 0:
                 self.init_time = time()
         else:
-            QtWidgets.QMessageBox.warning(self, 'Error', "Please choose an output file.", QtWidgets.QMessageBox.Ok)
+            default_directory = self.getWorkingDirectory()
+            path = default_directory +"/abacusdata" + strftime("_%Y%m%d_%H%M") + ".dat"
+            nameFilters = [constants.SUPPORTED_EXTENSIONS[extension] for extension in constants.SUPPORTED_EXTENSIONS]
+            filters = ";;".join(nameFilters)
+            name, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save as', path, filters, "",
+                                                          QtWidgets.QFileDialog.DontUseNativeDialog)
+            if name != "":
+                ext = ext[-5:-1]
+                if ext in name:
+                    pass
+                else:
+                    name += ext
+                self.save_as_lineEdit.setText(common.unicodePath(name))
+                self.setSaveAs()
+                self.startAcquisition()
 
     def startClocks(self):
         self.refresh_timer.start()
