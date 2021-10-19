@@ -817,13 +817,38 @@ class MainWindow(QMainWindow):
             self.mdi.tileSubWindows()
 
         elif text == "Default layout":
+            # Hide unwanted subwindows
             self.subwindow_current_single.hide()
             self.subwindow_current_double.hide()
             self.subwindow_current_multiple.hide()
             self.subwindow_plots_single.hide()
             self.subwindow_plots_double.hide()
             self.subwindow_plots_multiple.hide()
+
+            # Show default subwindows
+            self.subwindow_plots.show()
+            self.subwindow_current.show()
+            self.subwindow_historical.show()
+            self.subwindow_settings.show()
+
+            # Update buttons state
+            self.tabs_widget.btn_all_plots_subwindow.setChecked(True)
+            self.tabs_widget.btn_all_currents_subwindow.setChecked(True)
+            self.tabs_widget.single_tab_top.plotWindowButton.setChecked(False)
+            self.tabs_widget.double_tab_top.plotWindowButton.setChecked(False)
+            self.tabs_widget.multiple_tab_top.plotWindowButton.setChecked(False)
+            self.tabs_widget.single_tab_top.currentWindowButton.setChecked(False)
+            self.tabs_widget.double_tab_top.currentWindowButton.setChecked(False)
+            self.tabs_widget.multiple_tab_top.currentWindowButton.setChecked(False)
             self.mdi.tileSubWindows()
+
+            # Update menuView actions checkboxes
+            for action in self.menuView.actions():
+                text = action.text()
+                if text == "Show settings" or text == "Show historical" or text == "Show current" or text == "Show plots":
+                    action.setChecked(True)
+                else:
+                    action.setChecked(False)
 
         elif 'theme' in text:
             if 'Dark theme' == text:
