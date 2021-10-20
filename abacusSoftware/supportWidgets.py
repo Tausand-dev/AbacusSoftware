@@ -8,7 +8,8 @@ try:
     from PyQt5.QtWidgets import QSizePolicy, QTabWidget, QWidget, QCheckBox, \
                         QVBoxLayout, QFrame, QGroupBox, QLabel, QSizePolicy, \
                         QComboBox, QSpinBox, QFormLayout, QDialog, QDialogButtonBox, \
-                        QColorDialog, QHBoxLayout, QGridLayout, QPushButton, QToolButton, QTableWidgetItem
+                        QColorDialog, QHBoxLayout, QGridLayout, QPushButton, QToolButton, \
+                        QTableWidgetItem, QScrollArea
 except ModuleNotFoundError:
     from PyQt4 import QtWidgets, QtGui, QtCore
     from PyQt4.QtGui import QTableWidgetItem
@@ -1154,13 +1155,43 @@ class PlotConfigsDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
 
-        self.layout = QVBoxLayout()
+        self.frame = QFrame()
+        self.layout = QVBoxLayout(self.frame)
         self.layout.addWidget(self.colorsFormGroupBox)
         self.layout.addWidget(self.lineWidthMarkerFormGroupBox)
         self.layout.addWidget(self.buttonBox)
 
-        self.setLayout(self.layout)
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+        #scrollArea.horizontalScrollBar().setEnabled(False)
+        scrollArea.setWidget(self.frame)
+
+        #self.setCentralWidget(self.frame)
         painter.end()
+
+        self.outter_layout = QVBoxLayout()
+        self.outter_layout.addWidget(scrollArea)
+
+        self.setLayout(self.outter_layout)
+        #self.setSizePolicy(700, self.sizeHint().height())
+        if self.there_are_single_double_multiple_active(self.active_plots):
+            self.resize(800, self.sizeHint().height())
+
+    def there_are_single_double_multiple_active(self, plots_active):
+        at_least_one_single = False
+        at_least_one_double = False
+        at_least_one_multiple = False
+
+        for plot in plots_active:
+            channel_name = plot.opts['name']
+            if len(channel_name) == 1:
+                at_least_one_single = True
+            elif len(channel_name) == 2:
+                at_least_one_double = True
+            else:
+                at_least_one_multiple = True
+
+        return at_least_one_single and at_least_one_double and at_least_one_multiple
 
     def createColorGroupBox(self):
         colorGroupBox = QGroupBox("Lines color")
