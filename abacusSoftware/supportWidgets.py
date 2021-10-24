@@ -1173,9 +1173,10 @@ class PlotConfigsDialog(QDialog):
         self.outter_layout.addWidget(scrollArea)
 
         self.setLayout(self.outter_layout)
-        #self.setSizePolicy(700, self.sizeHint().height())
-        if self.there_are_single_double_multiple_active(self.active_plots):
-            self.resize(800, self.sizeHint().height())
+        if self.there_are_single_double_multiple_active(self.active_plots) and constants.IS_LIGHT_THEME:
+            self.resize(820, self.sizeHint().height())
+        elif self.there_are_single_double_multiple_active(self.active_plots) and not constants.IS_LIGHT_THEME:
+            self.resize(850, self.sizeHint().height())
 
     def there_are_single_double_multiple_active(self, plots_active):
         at_least_one_single = False

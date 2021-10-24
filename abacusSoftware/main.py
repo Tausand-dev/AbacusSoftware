@@ -8,6 +8,7 @@ import pyqtgraph as pg
 from datetime import datetime
 from itertools import combinations
 from time import time, localtime, strftime, sleep
+from random import randrange
 import qtmodern.styles
 
 from serial.serialutil import SerialException, SerialTimeoutException
@@ -871,50 +872,10 @@ class MainWindow(QMainWindow):
         nSymbols = len(constants.SYMBOLS)
 
         for i,channel in enumerate(self.active_channels):
-
-            if not constants.IS_LIGHT_THEME:
-                if channel in self.dark_colors_in_use.keys():
-                    color = self.dark_colors_in_use[channel][0]
-                    symbol = self.dark_colors_in_use[channel][1]
-                elif not any(self.dark_colors_in_use.keys()):
-                    color = constants.DARK_COLORS[i % nColors]
-                    symbol = constants.SYMBOLS[i % nSymbols]
-                else:
-                    last_color_used, last_symbol_used = list(self.dark_colors_in_use.values())[-1]
-                    if last_color_used in constants.DARK_COLORS:
-                        index_color = constants.DARK_COLORS.index(last_color_used)
-                    else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
-                        index_color = np.random.randint(0, nColors)
-                    index_symbol = constants.SYMBOLS.index(last_symbol_used)
-                    if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
-                        index_color = -1
-                    if index_symbol == (nSymbols - 1): 
-                        index_symbol = -1
-                    color = constants.DARK_COLORS[index_color + 1]
-                    symbol = constants.SYMBOLS[index_symbol + 1]
-                self.dark_colors_in_use[channel] = [color, symbol]
+            if constants.IS_LIGHT_THEME:
+                color, symbol = self.chooseChannelColorAndSymbol(channel, i, constants.COLORS, self.light_colors_in_use, constants.SYMBOLS)
             else:
-                if channel in self.light_colors_in_use.keys():
-                    color = self.light_colors_in_use[channel][0]
-                    symbol = self.light_colors_in_use[channel][1]
-                elif not any(self.light_colors_in_use.keys()):
-                    color = constants.COLORS[i % nColors]
-                    symbol = constants.SYMBOLS[i % nSymbols]
-                else:
-                    last_color_used, last_symbol_used = list(self.light_colors_in_use.values())[-1]
-                    if last_color_used in constants.COLORS:
-                        index_color = constants.COLORS.index(last_color_used)
-                    else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
-                        index_color = np.random.randint(0, nColors)
-                    #index_color = constants.COLORS.index(last_color_used)
-                    index_symbol = constants.SYMBOLS.index(last_symbol_used)
-                    if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
-                        index_color = -1
-                    if index_symbol == (nSymbols - 1): 
-                        index_symbol = -1
-                    color = constants.COLORS[index_color + 1]
-                    symbol = constants.SYMBOLS[index_symbol + 1]
-                self.light_colors_in_use[channel] = [color, symbol]
+                color, symbol = self.chooseChannelColorAndSymbol(channel, i, constants.DARK_COLORS, self.dark_colors_in_use, constants.SYMBOLS)
 
             letter = self.active_channels[i]
             pen = pg.mkPen(color, width=self.linewidth)
@@ -1006,6 +967,48 @@ class MainWindow(QMainWindow):
         #self.legend.setPen(legend_border)
         self.legend_multiple.setParentItem(self.counts_plot_multiple)
         self.legend_multiple.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
+
+    def chooseChannelColorAndSymbol(self, channel, channel_index, palette, colors_in_use, symbols):
+        new_color = None
+        new_symbol = None
+
+        nColors = len(palette)
+        nSymbols = len(symbols)
+
+        if channel in colors_in_use:
+            new_color = colors_in_use[channel][0]
+            new_symbol = colors_in_use[channel][1]
+        elif not any(colors_in_use.keys()):
+            new_color = palette[channel_index % nColors]
+            new_symbol = symbols[channel_index % nSymbols]
+        else:
+            channels_in_category = [chann for chann in colors_in_use.keys() if len(chann) == len(channel)]
+            if len(channels_in_category) == 0:
+                if len(channel) == 2:
+                    last_color_used = palette[self.number_channels-1]
+                    last_symbol_used = symbols[self.number_channels-1]
+                elif len(channel) == 3 or len(channel) == 4:
+                    last_color_used = palette[-2]
+                    last_symbol_used = symbols[-2]
+                else:
+                    last_color_used, last_symbol_used = list(colors_in_use.values())[-1]
+            else:
+                last_color_used = colors_in_use[channels_in_category[-1]][0]
+                last_symbol_used = colors_in_use[channels_in_category[-1]][1]
+            if last_color_used in palette:
+                index_color = palette.index(last_color_used)
+            else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
+                index_color = np.random.randint(0, nColors)
+            index_symbol = symbols.index(last_symbol_used)
+            if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
+                index_color = -1
+            if index_symbol == (nSymbols - 1): 
+                index_symbol = -1
+            new_color = palette[index_color + 1]
+            new_symbol = symbols[index_symbol + 1]
+        colors_in_use[channel] = [new_color, new_symbol]
+
+        return new_color, new_symbol
 
     def removePlots(self):
         if self.legend != None:
