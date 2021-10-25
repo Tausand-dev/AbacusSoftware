@@ -1588,8 +1588,6 @@ class MainWindow(QMainWindow):
             self.settings_frame2_formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.coincidence_label)
             self.settings_frame2_formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.coincidence_spinBox)
 
-            #self.settings_frame2.setTabOrder(self.sampling_widget.widget, self.coincidence_label)
-
             self.unlock_settings_button = QPushButton("Unlock settings")
             self.unlock_settings_button.clicked.connect(lambda: self.unlockSettings(True))
 
@@ -1605,7 +1603,6 @@ class MainWindow(QMainWindow):
 
             self.settings_frame2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
             self.mdi.addSubWindow(self.subwindow_settings)
-
         else:
             deleteWidgets(self.settings_frame2_formLayout, self.subSettings_delays_sleeps)
             createWidgets()
@@ -1613,6 +1610,8 @@ class MainWindow(QMainWindow):
 
         # createSampling()
         self.setSettings()
+        self.subwindow_settings.setTabOrder(self.sampling_widget.widget, self.coincidence_spinBox)
+        
 
     def timeInUnitsToMs(self, time):
         value = 0
