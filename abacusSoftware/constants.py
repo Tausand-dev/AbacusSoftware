@@ -45,10 +45,10 @@ CHECK_RATE = 250
 
 BUFFER_ROWS = 10000
 
-COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-        "#8c564b", "#e377c2", "#7f7f7f", "#bcdb22", "#14becf", "#23ab00"]
-COLORS_NAMES = ['Blue', 'Orange', 'Green', 'Red', 'Purple', 
-        'Brown', 'Pink', 'Gray', 'Olive', 'Cyan', 'Limeade'] # Names from Matplotlib except for the last one
+COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#7f7f7f",
+        "#8c564b", "#e377c2",  "#bcdb22", "#9467bd", "#14becf", "#23ab00"]
+COLORS_NAMES = ['Blue', 'Orange', 'Green', 'Red', 'Gray',
+        'Brown', 'Pink', 'Olive', 'Purple', 'Cyan', 'Limeade'] # Names from Matplotlib except for the last one
 
 DARK_COLORS = ["#ffffff", "#20fc03", "#b4c4fd", "#b4fdb9",  "#03fcec",
          "#feffcc", "#fc6467", "#e9e21c",  "#dcb4fd", "#fc03df", "#fffe08"]

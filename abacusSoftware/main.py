@@ -1783,7 +1783,7 @@ class MainWindow(QMainWindow):
             for letters in self.light_colors_in_use.keys():
                 settings.setValue(letters, self.light_colors_in_use[letters])
                 light_channels.append(letters)
-            settings.setValue("dark_channels", light_channels)    
+            settings.setValue("light_channels", light_channels)    
         settings.endGroup()
 
         settings.beginGroup("devices_previously_used")
