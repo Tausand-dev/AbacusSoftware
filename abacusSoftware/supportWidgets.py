@@ -1156,20 +1156,24 @@ class PlotConfigsDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
 
-        self.frame = QFrame()
-        self.layout = QVBoxLayout(self.frame)
-        self.layout.addWidget(self.colorsFormGroupBox)
-        self.layout.addWidget(self.lineWidthMarkerFormGroupBox)
-        self.layout.addWidget(self.buttonBox)
+        self.colors_frame = QFrame()
+        self.colors_layout = QVBoxLayout(self.colors_frame)
+        self.colors_layout.addWidget(self.colorsFormGroupBox)
+
+        self.more_settings_frame = QFrame()
+        self.more_settings_layout = QVBoxLayout(self.more_settings_frame)
+        self.more_settings_layout.addWidget(self.lineWidthMarkerFormGroupBox)
+        self.more_settings_layout.addWidget(self.buttonBox)
 
         scrollArea = QScrollArea()
         scrollArea.setWidgetResizable(True)
-        scrollArea.setWidget(self.frame)
+        scrollArea.setWidget(self.colors_frame)
 
         painter.end()
 
         self.outter_layout = QVBoxLayout()
         self.outter_layout.addWidget(scrollArea)
+        self.outter_layout.addWidget(self.more_settings_frame)
 
         self.setLayout(self.outter_layout)
         if self.there_are_single_double_multiple_active(self.active_plots) and constants.IS_LIGHT_THEME:
