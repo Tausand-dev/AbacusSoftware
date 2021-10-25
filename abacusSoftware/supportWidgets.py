@@ -1163,10 +1163,8 @@ class PlotConfigsDialog(QDialog):
 
         scrollArea = QScrollArea()
         scrollArea.setWidgetResizable(True)
-        #scrollArea.horizontalScrollBar().setEnabled(False)
         scrollArea.setWidget(self.frame)
 
-        #self.setCentralWidget(self.frame)
         painter.end()
 
         self.outter_layout = QVBoxLayout()

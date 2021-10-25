@@ -592,7 +592,7 @@ class MainWindow(QMainWindow):
         elif abacus.constants.DEBUG:
             print("Coincidence Window Value: %d" % value)
         try:
-            self.sleepSweepDialog.setCoincidence(value)
+            #self.sleepSweepDialog.setCoincidence(value)
             self.delaySweepDialog.setCoincidence(value)
         except AttributeError:
             pass

@@ -10,6 +10,7 @@ import numpy as np
 import pyqtgraph as pg
 from threading import Thread
 from abacusSoftware.supportWidgets import ClickableLineEdit
+from random import choice
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
@@ -38,7 +39,7 @@ class SweepDialogBase(QDialog):
 
         self.frame = QFrame()
 
-        self.horizontalLayout = QVBoxLayout(self.frame)
+        self.horizontalLayout = QHBoxLayout(self.frame)
         self.horizontalLayout.setContentsMargins(11, 11, 11, 11)
         self.horizontalLayout.setSpacing(6)
 
@@ -48,7 +49,7 @@ class SweepDialogBase(QDialog):
 
         self.horizontalLayout.addWidget(label)
         self.horizontalLayout.addWidget(self.lineEdit)
-        self.verticalLayout.addWidget(self.frame)
+        #self.verticalLayout.addWidget(self.frame)
 
         self.groupBox = QGroupBox("Settings")
 
@@ -102,12 +103,17 @@ class SweepDialogBase(QDialog):
         self.plot_win = pg.GraphicsLayoutWidget()
         self.plot = self.plot_win.addPlot(row=2, col=0)
 
-        self.sideBySideLayout = QHBoxLayout(self)
+        self.sideBySideFrame = QFrame()
+        self.sideBySideLayout = QHBoxLayout(self.sideBySideFrame)
         self.sideBySideLayout.addWidget(self.left_frame)
         self.sideBySideLayout.addWidget(self.right_frame)
 
         self.verticalRightLayout = QVBoxLayout(self.right_frame)
         self.verticalRightLayout.addWidget(self.plot_win)
+
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.frame)
+        self.layout.addWidget(self.sideBySideFrame)
 
         symbolSize = 8
         self.plot_line = self.plot.plot(pen = "r", symbol='o', symbolPen = "r", symbolBrush="r", symbolSize=symbolSize)
@@ -277,6 +283,14 @@ class DelayDialog(SweepDialogBase):
 
         self.setNumberChannels(4)
 
+        self.setTabOrder(self.comboBox1, self.comboBox2)
+        self.setTabOrder(self.comboBox2, self.startSpin)
+        self.setTabOrder(self.startSpin, self.stopSpin)
+        self.setTabOrder(self.stopSpin, self.stepSpin)
+        self.setTabOrder(self.stepSpin, self.nSpin)
+        self.setTabOrder(self.nSpin, self.startStopButton)
+        self.setTabOrder(self.startStopButton, self.lineEdit)
+
     def channelsChange(self, index):
         i1 = self.comboBox1.currentIndex()
         i2 = self.comboBox2.currentIndex()
@@ -410,19 +424,20 @@ class DelayDialog(SweepDialogBase):
             symbol = colors_symbols[channel12][1]
 
         symbolSize = self.parent.symbolSize
-        self.plot_line1.opts['pen'] = color1
+        linewidth = self.parent.linewidth
+        self.plot_line1.opts['pen'] = pg.mkPen(color1, width=linewidth)
         self.plot_line1.opts['symbol'] = symbol1
         self.plot_line1.opts['symbolPen'] = color1
         self.plot_line1.opts['symbolBrush'] = color1
         self.plot_line1.opts['symbolSize'] = symbolSize
 
-        self.plot_line2.opts['pen'] = color2
+        self.plot_line2.opts['pen'] = pg.mkPen(color2, width=linewidth)
         self.plot_line2.opts['symbol'] = symbol2
         self.plot_line2.opts['symbolPen'] = color2
         self.plot_line2.opts['symbolBrush'] = color2
         self.plot_line2.opts['symbolSize'] = symbolSize
 
-        self.plot_line.opts['pen'] = color
+        self.plot_line.opts['pen'] = pg.mkPen(color, width=linewidth)
         self.plot_line.opts['symbol'] = symbol
         self.plot_line.opts['symbolPen'] = color
         self.plot_line.opts['symbolBrush'] = color
@@ -439,8 +454,8 @@ class DelayDialog(SweepDialogBase):
         if self.completed:
             if self.fileName != "":
                 file = File(self.fileName, self.header)
-                data = np.vstack((self.x_data, self.y_data)).T
-                file.npwrite(data, "%d" + constants.DELIMITER + "%d")
+                data = np.vstack((self.x_data, self.y_datach1, self.y_datach2, self.y_data)).T
+                file.npwrite(data, "%d" + constants.DELIMITER + "%d" + constants.DELIMITER + "%d" + constants.DELIMITER + "%d")
 
             self.x_data = []
             self.y_data = []
@@ -469,7 +484,15 @@ class DelayDialog(SweepDialogBase):
         self.startStopButton.setStyleSheet("background-color: green")
         self.enableWidgets(False)
 
-        self.header = "Delay time (ns)"  + constants.DELIMITER +  "Coincidences"
+        channel1 = self.comboBox1.currentText()
+        channel2 = self.comboBox2.currentText()
+        if channel2 > channel1:
+            channel12 = channel1+channel2
+        else:
+            channel12 = channel2+channel1
+
+        self.header = "Delay time (ns)" + constants.DELIMITER + "Counts " + channel1 + constants.DELIMITER \
+           + "Counts " + channel2 + constants.DELIMITER + "Coincidences " + channel12
 
         self.parent.check_timer.stop()
         thread = Thread(target = self.heavyDuty, args = (n, range_))
@@ -630,7 +653,7 @@ class SleepDialog(SweepDialogBase):
     def __init__(self, parent):
         super(SleepDialog, self).__init__(parent)
 
-        self.formLayout.takeRow(self.rowIndexOfCoincidenceLabel-1)
+        self.formLayout.removeRow(self.rowIndexOfCoincidenceLabel-1)
         self.parent = parent
 
         self.setWindowTitle("Sleep time sweep")
@@ -640,6 +663,7 @@ class SleepDialog(SweepDialogBase):
         self.comboBox.setEditable(True)
         self.comboBox.lineEdit().setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.comboBox.lineEdit().setReadOnly(True)
+        self.comboBox.currentIndexChanged.connect(self.channelsChange)
 
         self.formLayout.insertRow(0, label, self.comboBox)
 
@@ -659,6 +683,19 @@ class SleepDialog(SweepDialogBase):
         self.stepSpin.setValue(abacus.constants.SLEEP_STEP_VALUE) #new on v1.4.0 (2020-06-30)
 
         self.plot.setLabel('left', "Counts")
+        self.plot.setLabel('bottom', "Sleep time", units='ns')
+
+        self.setTabOrder(self.comboBox, self.startSpin)
+        self.setTabOrder(self.startSpin, self.stopSpin)
+        self.setTabOrder(self.stopSpin, self.stepSpin)
+        self.setTabOrder(self.stepSpin, self.nSpin)
+        self.setTabOrder(self.nSpin, self.startStopButton)
+        self.setTabOrder(self.startStopButton, self.lineEdit)
+
+    def channelsChange(self, index):
+        channel = self.comboBox.currentText()
+
+        self.plot.setLabel('left', "Counts " + channel)
         self.plot.setLabel('bottom', "Sleep time", units='ns')
 
     def startStop(self):
@@ -779,12 +816,21 @@ class SleepDialog(SweepDialogBase):
             colors_symbols = self.parent.dark_colors_in_use
 
         channel = self.comboBox.currentText()
+        self.plot.setLabel('left', "Counts "+ channel)
 
-        color = colors_symbols[channel][0]
-        symbol = colors_symbols[channel][1]
+        try:
+            color = colors_symbols[channel][0]
+            symbol = colors_symbols[channel][1]
+        except KeyError:
+            if constants.IS_LIGHT_THEME:
+                color = constants.COLORS[-1]
+            else:
+                color = constants.DARK_COLORS[-1]
+            symbol = constants.SYMBOLS[-1]
 
         symbolSize = self.parent.symbolSize
-        self.plot_line.opts['pen'] = color
+        linewidth = self.parent.linewidth
+        self.plot_line.opts['pen'] = pg.mkPen(color, width=linewidth)
         self.plot_line.opts['symbol'] = symbol
         self.plot_line.opts['symbolPen'] = color
         self.plot_line.opts['symbolBrush'] = color
