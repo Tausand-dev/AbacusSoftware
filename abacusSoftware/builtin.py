@@ -369,59 +369,9 @@ class DelayDialog(SweepDialogBase):
         else:
             channel12 = channel2+channel1
 
-        if channel1 not in colors_symbols.keys():
-            last_color_used, last_symbol_used = list(colors_symbols.values())[-1]
-            if last_color_used in predefined_colors:
-                index_color = predefined_colors.index(last_color_used)
-            else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
-                index_color = np.random.randint(0, nColors)
-            index_symbol = constants.SYMBOLS.index(last_symbol_used)
-            if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
-                index_color = -1
-            if index_symbol == (nSymbols - 1): 
-                index_symbol = -1
-            color1 = predefined_colors[index_color + 1]
-            symbol1 = constants.SYMBOLS[index_symbol + 1]
-            colors_symbols[channel1] = [color1, symbol1]
-        else:
-            color1 = colors_symbols[channel1][0]
-            symbol1 = colors_symbols[channel1][1]
-
-        if channel2 not in colors_symbols.keys():
-            last_color_used, last_symbol_used = list(colors_symbols.values())[-1]
-            if last_color_used in predefined_colors:
-                index_color = predefined_colors.index(last_color_used)
-            else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
-                index_color = np.random.randint(0, nColors)
-            index_symbol = constants.SYMBOLS.index(last_symbol_used)
-            if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
-                index_color = -1
-            if index_symbol == (nSymbols - 1): 
-                index_symbol = -1
-            color2 = predefined_colors[index_color + 1]
-            symbol2 = constants.SYMBOLS[index_symbol + 1]
-            colors_symbols[channel2] = [color2, symbol2]
-        else:
-            color2 = colors_symbols[channel2][0]
-            symbol2 = colors_symbols[channel2][1]
-
-        if channel12 not in colors_symbols.keys():
-            last_color_used, last_symbol_used = list(colors_symbols.values())[-1]
-            if last_color_used in predefined_colors:
-                index_color = predefined_colors.index(last_color_used)
-            else: # if the last color used is a custom color, it will not be in the color pallete list. Therefore a random index should be used
-                index_color = np.random.randint(0, nColors)
-            index_symbol = constants.SYMBOLS.index(last_symbol_used)
-            if index_color == (nColors - 1): # in case the last color used is the last in the color pallete list, then the next color will be the first in the pallete list
-                index_color = -1
-            if index_symbol == (nSymbols - 1): 
-                index_symbol = -1
-            color = predefined_colors[index_color + 1]
-            symbol = constants.SYMBOLS[index_symbol + 1]
-            colors_symbols[channel12] = [color, symbol]
-        else:
-            color = colors_symbols[channel12][0]
-            symbol = colors_symbols[channel12][1]
+        color1, symbol1 = self.parent.chooseChannelColorAndSymbol(channel1, predefined_colors, colors_symbols, constants.SYMBOLS)
+        color2, symbol2 = self.parent.chooseChannelColorAndSymbol(channel2, predefined_colors, colors_symbols, constants.SYMBOLS)
+        color, symbol = self.parent.chooseChannelColorAndSymbol(channel12, predefined_colors, colors_symbols, constants.SYMBOLS)
 
         symbolSize = self.parent.symbolSize
         linewidth = self.parent.linewidth

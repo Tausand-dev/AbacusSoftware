@@ -873,9 +873,9 @@ class MainWindow(QMainWindow):
 
         for i,channel in enumerate(self.active_channels):
             if constants.IS_LIGHT_THEME:
-                color, symbol = self.chooseChannelColorAndSymbol(channel, i, constants.COLORS, self.light_colors_in_use, constants.SYMBOLS)
+                color, symbol = self.chooseChannelColorAndSymbol(channel, constants.COLORS, self.light_colors_in_use, constants.SYMBOLS)
             else:
-                color, symbol = self.chooseChannelColorAndSymbol(channel, i, constants.DARK_COLORS, self.dark_colors_in_use, constants.SYMBOLS)
+                color, symbol = self.chooseChannelColorAndSymbol(channel, constants.DARK_COLORS, self.dark_colors_in_use, constants.SYMBOLS)
 
             letter = self.active_channels[i]
             pen = pg.mkPen(color, width=self.linewidth)
@@ -968,7 +968,7 @@ class MainWindow(QMainWindow):
         self.legend_multiple.setParentItem(self.counts_plot_multiple)
         self.legend_multiple.anchor(itemPos=(1,0), parentPos=(1,0), offset=(22,-15))
 
-    def chooseChannelColorAndSymbol(self, channel, channel_index, palette, colors_in_use, symbols):
+    def chooseChannelColorAndSymbol(self, channel, palette, colors_in_use, symbols):
         new_color = None
         new_symbol = None
 
@@ -979,8 +979,8 @@ class MainWindow(QMainWindow):
             new_color = colors_in_use[channel][0]
             new_symbol = colors_in_use[channel][1]
         elif not any(colors_in_use.keys()):
-            new_color = palette[channel_index % nColors]
-            new_symbol = symbols[channel_index % nSymbols]
+            new_color = palette[0]
+            new_symbol = symbols[0]
         else:
             channels_in_category = [chann for chann in colors_in_use.keys() if len(chann) == len(channel)]
             if len(channels_in_category) == 0:
