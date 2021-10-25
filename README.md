@@ -74,6 +74,18 @@ pyinstaller build_mac.spec
 pyinstaller build.spec
 ```
 
+### Generating images and icons
+In linux, `cd` into `abacusSoftware/GUI/images/`, where you'll find the image files that will be used in the application. You'll also find a .qrc file which specifies any image that you want to include. If you want to use new images you'll need to specify their name inside such file. Next execute the following command
+
+```
+pyrcc5 -o __GUI_images__.py images.qrc
+```
+This will update the `__GUI_images__.py` file, which needs to be copied into the folder `abacusSoftware` and replace the file located there with the same name. Now the image resources can be called from within the code by doing, for example,
+
+```
+splash_pix = QtGui.QPixmap(':/splash.png').scaledToWidth(600)
+```
+
 ### Fixing pyinstaller:
 https://github.com/pyinstaller/pyinstaller/commit/082078e30aff8f5b8f9a547191066d8b0f1dbb7e
 
