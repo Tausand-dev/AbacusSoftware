@@ -924,6 +924,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.verticalLayout.addWidget(self.buttons)
 
         self.setConstants()
+        self.setMinimumWidth(500)
 
     def autogenerateMethod(self, val):
         self.datetime_checkBox.setEnabled(val)

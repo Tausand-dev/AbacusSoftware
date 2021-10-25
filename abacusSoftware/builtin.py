@@ -734,7 +734,7 @@ class SleepDialog(SweepDialogBase):
         self.startStopButton.setStyleSheet("background-color: green")
         self.enableWidgets(False)
 
-        self.header = "Sleep time (ns)"  + constants.DELIMITER +  "Counts (%s)"%channel
+        self.header = "Sleep time (ns)"  + constants.DELIMITER +  "Counts %s"%channel
 
         self.parent.check_timer.stop()
         thread = Thread(target = self.heavyDuty, args = (channel, n, range_))
