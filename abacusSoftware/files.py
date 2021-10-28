@@ -96,7 +96,7 @@ class RingBuffer():
         self.index = 0
         self.file = file
         self.combinations = combinations
-        self.data_fmt = ["%.3f"] + ["%d" for i in range(columns - 1)]
+        self.data_fmt = ["%s"] + ["%s" for i in range(columns - 1)]
         self.fmt = constants.DELIMITER.join(self.data_fmt)
         self.size = self.data.shape[0]
         self.total_movements = 0
@@ -143,6 +143,20 @@ class RingBuffer():
             from_index = self.size - self.index + self.last_saved
             self.last_saved = self.index
             data = self.get()[from_index%self.size:]
+            
+            # The following instrucctions allow to save 
+            # innactive channels counts as an empty string ""
+            times = list(data[:,0])
+            for i,time in enumerate(times):
+                times[i] = "{:.3f}".format(time)
+            times = np.array(times)
+            rest_of_data = data[:,1:].astype('int32')
+            data = data.astype('int32')
+            data[:,1:] = rest_of_data
+            data = data.astype('U')
+            data[data == "-1"] = ""
+            data[:,0] = times
+
             self.file.npwrite(data, self.fmt)
         else:
             print("No file has been specified.")
