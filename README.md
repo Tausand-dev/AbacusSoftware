@@ -1,7 +1,7 @@
 # AbacusSoftware
 Abacus Software is a suite of tools built to ensure your experience with Tausand's coincidence counters becomes simplified.
 
-Written in Python3, AbacusSoftware relies on the following modules:
+Written in Python3, abacusSoftware relies on the following modules:
 
 - pyAbacus
 - pyqtgraph
