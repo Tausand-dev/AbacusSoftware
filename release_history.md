@@ -1,4 +1,4 @@
-# Release Notes 1.5.0 - September 2021
+# Release Notes 1.5.0 - November 2021
 ## New features
 * Checkboxes were added to check/unckeck all single or double channels at once (Issue #55).
 * Buttons to show/hide Current and Plots subwindows. 
