@@ -10,6 +10,9 @@ Written in Python3, abacusSoftware relies on the following modules:
 - pyserial
 - qtmodern
 
+## Preview
+
+A quick demo video to preview this software is available at: https://youtu.be/c4QO8p1WeSE
 
 ## Installation
 `abacusSoftware` can be installed using `pip` as: 
