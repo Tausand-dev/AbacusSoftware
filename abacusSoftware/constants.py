@@ -3,7 +3,7 @@ import sys
 import pyAbacus as abacus
 from .common import findDocuments
 
-__version__ = "1.5.0"
+__version__ = "1.6.0"
 
 CURRENT_OS = sys.platform
 #DIRECTORY = os.path.dirname(sys.executable)
