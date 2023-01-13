@@ -2033,10 +2033,14 @@ def run():
     splash = QtWidgets.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
     splash.show()
 
-    if abacus.CURRENT_OS == 'win32':
-        constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/abacus_small.ico'))
-    else:
-        constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/Abacus_small.png'))
+    ##in v1.5.0
+    #if abacus.CURRENT_OS == 'win32':
+    #    constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/abacus_small.ico'))
+    #else:
+    #    constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/Abacus_small.png'))
+    ##since v1.6.0. Use 512x512 png for any OS
+    constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/Abacus_small.png'))
+    
     app.setWindowIcon(constants.ICON)
     app.processEvents()
 
