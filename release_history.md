@@ -1,3 +1,10 @@
+# Release Notes 1.6.0 - January 2023
+## New features
+* Added compatibility with new family AB2000 devices: AB2502 and AB2504.
+
+## Bug Fixes
+* Icon in win32 systems of better resolution.
+
 # Release Notes 1.5.0 - November 2021
 ## New features
 * Checkboxes were added to check/unckeck all single or double channels at once (Issue #55).
