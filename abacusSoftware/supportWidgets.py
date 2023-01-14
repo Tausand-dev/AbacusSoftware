@@ -280,7 +280,7 @@ class Tabs(QFrame):
             row = n_widgets_created
             layout.addWidget(widget, row, 0)
         else:
-            row = n_widgets_created-len(letters)/2
+            row = int(n_widgets_created-len(letters)/2) #v1.6.0: cast to int
             layout.addWidget(widget, row, 1)
 
         return widget
