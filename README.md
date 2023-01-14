@@ -31,6 +31,17 @@ On a terminal or command prompt type
 abacusSoftware
 ```
 
+### Fix port access on Linux
+Most Linux configurations have a dialout group for full and direct access to serial ports. By adding your user account to this group you will have the necessary permissions for Abacus Software to communicate with the serial ports.
+
+1. Open Terminal.
+2. Enter the following command, replacing ```<username>``` with the name of your account.
+```
+sudo usermod -a -G dialout <username>
+```
+3. Sign in and out for the changes to take effect.
+
+
 ## For developers
 ### Creating a virtual environment
 Run the following code to create a virtual environment called `.venv`
