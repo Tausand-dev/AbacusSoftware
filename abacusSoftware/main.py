@@ -1030,8 +1030,8 @@ class MainWindow(QMainWindow):
             if value > 0 and self.port_name != None:
                 try:
                     abacus.setSetting(self.port_name, 'sampling', value)
-                    if value > constants.DATA_REFRESH_RATE:
-                        self.refresh_timer.setInterval(value*0.1)
+                    if value > (constants.DATA_REFRESH_RATE*10):
+                        self.refresh_timer.setInterval(int(value*0.1)) #v1.6.0: cast to int
                     else:
                         self.refresh_timer.setInterval(constants.DATA_REFRESH_RATE)
                     # 27-sept-2021 The following if-else block was added to prevent the app from crashing.
