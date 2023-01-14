@@ -135,7 +135,7 @@ class SweepDialogBase(QDialog):
 
         self.error = None
 
-        self.right_frame.setMinimumWidth(self.left_frame.width()*0.75)
+        self.right_frame.setMinimumWidth(int(self.left_frame.width()*0.75)) #v1.6.0: cast to int
 
     def handleStart(self, value):
         self.stopSpin.setMinimum(value + abacus.constants.DELAY_STEP_VALUE)
