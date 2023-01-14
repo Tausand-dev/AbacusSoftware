@@ -31,7 +31,7 @@ On a terminal or command prompt type
 abacusSoftware
 ```
 
-### Fix port access on Linux
+### Grant port access on Linux
 Most Linux configurations have a dialout group for full and direct access to serial ports. By adding your user account to this group you will have the necessary permissions for Abacus Software to communicate with the serial ports.
 
 1. Open Terminal.
