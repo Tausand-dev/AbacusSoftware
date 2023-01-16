@@ -1030,8 +1030,8 @@ class MainWindow(QMainWindow):
             if value > 0 and self.port_name != None:
                 try:
                     abacus.setSetting(self.port_name, 'sampling', value)
-                    if value > constants.DATA_REFRESH_RATE:
-                        self.refresh_timer.setInterval(value*0.1)
+                    if value > (constants.DATA_REFRESH_RATE*10):
+                        self.refresh_timer.setInterval(int(value*0.1)) #v1.6.0: cast to int
                     else:
                         self.refresh_timer.setInterval(constants.DATA_REFRESH_RATE)
                     # 27-sept-2021 The following if-else block was added to prevent the app from crashing.
@@ -2033,10 +2033,14 @@ def run():
     splash = QtWidgets.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
     splash.show()
 
-    if abacus.CURRENT_OS == 'win32':
-        constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/abacus_small.ico'))
-    else:
-        constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/Abacus_small.png'))
+    ##in v1.5.0
+    #if abacus.CURRENT_OS == 'win32':
+    #    constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/abacus_small.ico'))
+    #else:
+    #    constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/Abacus_small.png'))
+    ##since v1.6.0. Use 512x512 png for any OS
+    constants.ICON = QtGui.QIcon(QtGui.QPixmap(':/Abacus_small.png'))
+    
     app.setWindowIcon(constants.ICON)
     app.processEvents()
 
