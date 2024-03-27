@@ -1,2 +1,0 @@
-
-# abacus.close_stdout()
