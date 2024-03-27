@@ -1,0 +1,77 @@
+('C:\\Users\\soyyo\\Documents\\Tausand '
+ 'Abacus\\AbacusSoftware-master\\abacusSoftware\\build\\main\\main.pkg',
+ {'BINARY': 1,
+  'DATA': 1,
+  'EXECUTABLE': 1,
+  'EXTENSION': 1,
+  'PYMODULE': 1,
+  'PYSOURCE': 1,
+  'PYZ': 0,
+  'SPLASH': 1},
+ [('PYZ-00.pyz',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\abacusSoftware\\build\\main\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\abacusSoftware\\build\\main\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\abacusSoftware\\build\\main\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\abacusSoftware\\build\\main\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\abacusSoftware\\build\\main\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\abacusSoftware\\build\\main\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pyqt5',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyqt5.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_setuptools',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgres',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgres.py',
+   'PYSOURCE'),
+  ('pyi_rth_pyqtgraph_multiprocess',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\.venv\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\hooks\\rthooks\\pyi_rth_pyqtgraph_multiprocess.py',
+   'PYSOURCE'),
+  ('main',
+   'C:\\Users\\soyyo\\Documents\\Tausand '
+   'Abacus\\AbacusSoftware-master\\abacusSoftware\\main.py',
+   'PYSOURCE')],
+ True,
+ False,
+ False,
+ [],
+ None,
+ None,
+ None)
