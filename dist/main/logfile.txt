@@ -1,0 +1,286 @@
+C:\Users\soyyo\Documents/Tausand
+abacusdata
+False
+Sampling Value, 1000
+Coincidence Window Value: 10
+COM1 answered: 
+Looking for channels in name: Tausand Abacus AB1504
+Looking for resolution in name: Tausand Abacus AB1504
+Looking for family in name: Tausand Abacus AB1504
+COM14 answered: Tausand Abacus AB1504
+COM14 number of channels: 4
+COM14 resolution in nanoseconds: 2
+COM14 family of device: AB1000
+Looking for channels in name: Tausand Abacus AB1504
+Looking for resolution in name: Tausand Abacus AB1504
+Looking for family in name: Tausand Abacus AB1504
+COM14 answered: Tausand Abacus AB1504
+COM14 number of channels: 4
+COM14 resolution in nanoseconds: 2
+COM14 family of device: AB1000
+Constant values linked to device resolution:
+  COINCIDENCE_WINDOW_MINIMUM_VALUE: 2
+  COINCIDENCE_WINDOW_STEP_VALUE: 2
+  DELAY_STEP_VALUE: 2
+  SLEEP_STEP_VALUE: 2
+Looking for channels in name: Tausand Abacus AB1504 (COM14)
+Sampling Value, 1
+Sampling Value, 1000
+abacusdata
+False
+FileExistsError on setSaveAs
+writeSerial: [2, 15, 80, 0, 0, 144, 10, 4]
+writeParams ignored: Sampling time (ms), 1000
+writeSerial: [2, 15, 81, 0, 0, 16, 10, 4]
+writeParams ignored: Coincidence Window (ns), 10
+writeSerial: [2, 15, 64, 0, 0, 0, 0, 4]
+writeParams ignored: Delay A (ns), 0
+writeSerial: [2, 15, 72, 0, 0, 0, 0, 4]
+writeParams ignored: Sleep A (ns), 0
+writeSerial: [2, 15, 65, 0, 0, 0, 0, 4]
+writeParams ignored: Delay B (ns), 0
+writeSerial: [2, 15, 73, 0, 0, 0, 0, 4]
+writeParams ignored: Sleep B (ns), 0
+writeSerial: [2, 15, 66, 0, 0, 0, 0, 4]
+writeParams ignored: Delay C (ns), 0
+writeSerial: [2, 15, 74, 0, 0, 0, 0, 4]
+writeParams ignored: Sleep C (ns), 0
+writeSerial: [2, 15, 67, 0, 0, 0, 0, 4]
+writeParams ignored: Delay D (ns), 0
+writeSerial: [2, 15, 75, 0, 0, 0, 0, 4]
+writeParams ignored: Sleep D (ns), 0
+writeSerial: [2, 15, 88, 0, 0, 0, 240, 4]
+writeSerial: [2, 15, 88, 0, 0, 0, 240, 4]
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 250], 23)
+CheckSumError
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+Sampling Value, 0
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 250], 23)
+CheckSumError
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 218], 23)
+CheckSumError
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 173], 13)
+CheckSumError
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 173], 13)
+CheckSumError
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 173], 13)
+CheckSumError
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 173], 13)
+CheckSumError
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 250], 23)
+CheckSumError
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 218], 23)
+CheckSumError
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 173], 13)
+CheckSumError
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 250], 23)
+CheckSumError
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 250], 23)
+CheckSumError
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 218], 23)
+CheckSumError
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+writeSerial: [2, 14, 64, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 64, 0, 0, 0, 0, 65, 0, 0, 0, 0, 66, 0, 0, 0, 0, 67, 0, 0, 0, 0, 249], 23)
+writeSerial: [2, 14, 72, 0, 0, 0, 4, 4]
+readSerial: ([126, 20, 72, 0, 0, 0, 0, 73, 0, 0, 0, 0, 74, 0, 0, 0, 0, 75, 0, 0, 0, 0, 217], 23)
+writeSerial: [2, 14, 80, 0, 0, 0, 2, 4]
+readSerial: ([126, 10, 80, 255, 255, 144, 10, 81, 0, 0, 16, 10, 172], 13)
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 184], 8)
+CheckSumError
+writeSerial: [2, 14, 88, 0, 0, 0, 1, 4]
+readSerial: ([126, 5, 88, 0, 0, 0, 240, 183], 8)
+No file has been specified.
