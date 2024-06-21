@@ -1,3 +1,4 @@
+import glob
 import os
 import re
 import sys
@@ -17,7 +18,7 @@ try:
     from PyQt5 import QtCore, QtGui, QtWidgets
     from PyQt5.QtWidgets import QLabel, QSpinBox, QComboBox, QSizePolicy, QAction, \
         QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFrame, \
-        QPushButton, QMdiArea
+        QPushButton, QMdiArea,QApplication, QMessageBox
 except ModuleNotFoundError:
     from PyQt4.QtGui import QLabel, QSpinBox, QComboBox, QSizePolicy, QAction
 
@@ -49,6 +50,7 @@ class MainWindow(QMainWindow):
         abacus.setLogfilePath(self.getWorkingDirectory())
         self.port_name = None
         self.start_position = None
+        self.sentinel_prefix=0
         self.number_channels = 0
         self.active_channels = []
         self.active_channels_single = []
@@ -367,6 +369,7 @@ class MainWindow(QMainWindow):
         if not os.path.exists(dirName):
             os.mkdir(dirName)
         return dirName
+    
 
     def aboutWindowCaller(self):
         self.about_window.show()
@@ -417,14 +420,78 @@ class MainWindow(QMainWindow):
         x_o = (sw - fw) / 2
         self.move(x_o, y_o)
 
+    #The function check only the filename not the path   
+    def preRunfilename(self,name):
+        #Para Windows
+        #if constants.CURRENT_OS in constants.WINDOWS_NAMES:
+        #Sentinel to check the first run
+
+        if constants.CURRENT_OS in constants.WINDOWS_NAMES:
+            if name in constants.NOT_SUPPORTED_WINDOWS_RESERVED_WORDS:
+                name="abacusdata"
+                alert=QMessageBox()
+                alert.setIcon(QMessageBox.Icon.Warning)
+                alert.setWindowTitle("Invalid Prefix data name")
+                alert.setText('Invalid Prefix data name. The prefix name has been changed to abacusdata. Check that name in the file is not a reserved word. Reserved words are: CON, PRN, AUX, NUL,COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9,LPT1, LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,COM,LPT')
+                alert.setStyleSheet("QMessageBox { background-color: white; }")
+                alert.exec_()
+                
+
+            if any(correctname in name for correctname in constants.NOT_SUPPORTED_WINDOWS_CHARACTER_NAMES):
+                name="abacusdata"
+                alert=QMessageBox()
+                alert.setIcon(QMessageBox.Icon.Warning)
+                alert.setWindowTitle("Invalid Prefix data name")
+                alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: <,>,:,",//,\\,|,?,*')
+                alert.setStyleSheet("QMessageBox { background-color: white; }")
+                alert.exec_()
+            else:
+                name=name
+        elif constants.CURRENT_OS in constants.MAC_NAMES:
+            if any(correctname in name for correctname in constants.NOT_SUPPORTED_MAC_CHARACTER):
+                nname="abacusdata"
+                alert=QMessageBox()
+                alert.setIcon(QMessageBox.Icon.Warning)
+                alert.setWindowTitle("Invalid Prefix data name")
+                alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: :,\\')
+                alert.setStyleSheet("QMessageBox { background-color: white; }")
+                alert.exec_()
+            else:
+                name=name              
+        elif constants.CURRENT_OS in constants.LINUX_NAMES:
+            if any(correctname in name for correctname in constants.NOT_SUPPORTED_LINUX_CHARACTER):
+                name="abacusdata"
+                alert=QMessageBox()
+                alert.setIcon(QMessageBox.Icon.Warning)
+                alert.setWindowTitle("Invalid Prefix data name")
+                alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: :,\\')
+                alert.setStyleSheet("QMessageBox { background-color: white; }")
+                alert.exec_()
+            else:
+                name=name              
+
+        return name        
+                
+                
+
+        
+        
+
     def checkFileName(self, name):
+        
         if "." in name:
-            name, ext = name.split(".")
+        #Para Windows
+        #if constants.CURRENT_OS in constants.WINDOWS_NAMES:
+
+            values = name.split(".")
+            name= ""
+            for i in range(len(values)-1):
+                name+=values[i]
+            ext=values[-1]
             ext = ".%s" % ext
         else:
             try:
                 ext = constants.extension_comboBox
-                print(ext)
             except AttributeError:
                 ext = constants.EXTENSION_DATA
             name = common.unicodePath(name)
@@ -434,6 +501,7 @@ class MainWindow(QMainWindow):
         else:
             raise ExtentionError()
 
+    #To do eliminar prints
     def checkParams(self):
         if self.port_name != None:
             try:
@@ -472,7 +540,12 @@ class MainWindow(QMainWindow):
                         sleep.setValue(sleep_new_val)
 
                 if (self.sampling_widget.getValue() != samp):
-                    self.sampling_widget.setValue(samp)
+                    try:
+                    
+                        self.sampling_widget.setValue(samp)
+                    except ValueError as e:
+                        print(f"Error: {e}")
+
 
             except abacus.BaseError as e:
                 pass
@@ -660,9 +733,15 @@ class MainWindow(QMainWindow):
 
             port = self.connect_dialog.comboBox.currentText()
 
+            #test creado
+            
+            
+
+
             if port != "":
                 try:
                     abacus.open(port)
+                    
                 except abacus.AbacusError:
                     pass
                 n = abacus.getChannelsFromName(port)
@@ -681,6 +760,7 @@ class MainWindow(QMainWindow):
                     self.data_ring.setFile(self.results_files.data_file)
 
                 self.port_name = port  # not before
+                settings = abacus.getAllSettings(self.port_name)
                 self.writeParams("Connected to device in port, %s" % self.port_name)
                 self.updateConstants()
                 self.check_timer.start()
@@ -1025,11 +1105,17 @@ class MainWindow(QMainWindow):
 
     def samplingMethod(self, value, force_write=False):
         if self.sampling_widget != None:
-            if force_write: self.sampling_widget.setValue(value)
+            if force_write: 
+                try:
+                    self.sampling_widget.setValue(value)
+                except ValueError as e:
+                    print(f"Error: {e}")    
             value = self.sampling_widget.getValue()
             if value > 0 and self.port_name != None:
                 try:
+                    settings = abacus.getAllSettings(self.port_name)
                     abacus.setSetting(self.port_name, 'sampling', value)
+                    settings = abacus.getAllSettings(self.port_name)
                     if value > (constants.DATA_REFRESH_RATE*10):
                         self.refresh_timer.setInterval(int(value*0.1)) #v1.6.0: cast to int
                     else:
@@ -1044,6 +1130,7 @@ class MainWindow(QMainWindow):
                     else:
                         self.data_timer.setInterval(value)
                     self.writeParams("Sampling time (ms), %s" % value)
+                    
                 # except abacus.InvalidValueError as e:
                 #     self.sampling_widget.invalid()
                 except SerialException as e:
@@ -1203,8 +1290,11 @@ class MainWindow(QMainWindow):
         self.tabs_widget.changeButtonsIcons()
         self.mdi.setBackground(QtGui.QBrush(QtGui.QColor("#f0f0f0")))
 
+
+    
     def setSaveAs(self):
         new_file_name = self.save_as_lineEdit.text()
+        
         try:
             if new_file_name != "":
                 try:
@@ -1636,13 +1726,19 @@ class MainWindow(QMainWindow):
             common.updateConstants(self)
             if constants.autogenerate_checkBox:
                 file_name = constants.file_prefix_lineEdit
+                name_only_file=file_name
+                verifyname=self.preRunfilename(name_only_file)
+                file_name=verifyname
+                self.settings_dialog.file_prefix_lineEdit.setText(file_name)
                 if constants.datetime_checkBox: file_name += strftime("_%Y%m%d_%H%M")
                 file_name += constants.extension_comboBox
                 path = os.path.join(constants.directory_lineEdit, file_name)
                 self.save_as_lineEdit.setText(common.unicodePath(path))
                 self.setSaveAs()
-
-            self.sampling_widget.setValue(constants.sampling_widget)
+            try:
+                self.sampling_widget.setValue(constants.sampling_widget)
+            except ValueError as e:
+                print(f"Error: {e}")    
             self.sendSettings()
 
             if constants.theme_checkBox:
