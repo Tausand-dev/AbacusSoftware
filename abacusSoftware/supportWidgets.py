@@ -44,9 +44,11 @@ class SamplingWidget(object):
             index = self.widget.findText('%d ms' % value)
         elif value < 10000:
             index = self.widget.findText('%.1f s' % (value / 1000))
+        #Limitar el sampling time
+        elif value > 10000 and value<1000000000:
+            index = self.widget.findText('%.1f s' % (value / 1000))                
         else:
-            index = self.widget.findText('%d s' % (value / 1000))
-
+            raise ValueError("The sampling time is too high. If you are using an Abacus device, it is possible that it needs maintenance. If you are emulating data, check the condigured sampling parameter")
         self.widget.setCurrentIndex(index)
 
     def changeNumberChannels(self, number_channels):
