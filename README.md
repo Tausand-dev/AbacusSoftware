@@ -43,6 +43,9 @@ sudo usermod -a -G dialout <username>
 
 
 ## For developers
+### Updating to a new version
+Write the changes of the new version in the file LastVersionNotes.md.
+Once the version is ready to update, run the script updateversion.py to include the last version notes in the release_history.md file.
 ### Creating a virtual environment
 Run the following code to create a virtual environment called `.venv`
 ```
