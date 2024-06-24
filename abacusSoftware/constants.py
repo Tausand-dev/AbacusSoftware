@@ -1,9 +1,11 @@
+#NOTA: No cambiar el nombre de la variable __version__
 import os
 import sys
 import pyAbacus as abacus
 from .common import findDocuments
 
-__version__ = "1.6.0"
+
+__version__ = '1.6.1'
 
 CURRENT_OS = sys.platform
 #DIRECTORY = os.path.dirname(sys.executable)
@@ -29,7 +31,14 @@ PARAMS_SUFFIX = "_settings"
 FILE_PREFIX = "abacusdata"
 EXTENSION_PARAMS = PARAMS_SUFFIX + '.txt'
 SUPPORTED_EXTENSIONS = {'.dat': 'Plain text data file (*.dat)', '.csv' : 'CSV data files (*.csv)'}
-
+WINDOWS_NAMES=['win32','cygwin','msys']
+MAC_NAMES=['darwin']
+LINUX_NAMES=['linux','linux2']
+NOT_SUPPORTED_WINDOWS_CHARACTER_NAMES = ['<','>',':','"','/','\\','|','?','*']
+NOT_SUPPORTED_WINDOWS_RESERVED_WORDS = ['CON', 'PRN', 'AUX', 'NUL','COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9'
+'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9','COM','LPT']
+NOT_SUPPORTED_MAC_CHARACTER = [':','/']
+NOT_SUPPORTED_LINUX_CHARACTER = [':','/']
 DELIMITER = ","
 DELIMITERS = [",", ";", "Tab", "Space"]
 
@@ -66,3 +75,31 @@ NUMBER_OF_TRIES = 10
 ICON = None
 
 IS_LIGHT_THEME = False
+
+def actualizar_numero_version(nombre_archivo):
+    nuevo_numero_version=__version__    
+    with open(nombre_archivo, 'r') as archivo:
+        lineas = archivo.readlines()
+
+    version_lista=str(nuevo_numero_version).split(".")
+    version_comas=", ".join(version_lista)
+
+
+    for i, linea in enumerate(lineas):
+        if 'FileVersion' in linea:
+            lineas[i] = "        StringStruct(u'FileVersion', u'"+str(nuevo_numero_version)+".0'),"
+        elif 'ProductVersion' in linea:
+            lineas[i] = "        StringStruct(u'ProductVersion', u'"+str(nuevo_numero_version)+".0')])" 
+        elif 'filevers=' in linea:
+            lineas[i] = "    filevers=("+version_comas+", 0),"    
+        elif 'prodvers=' in linea:
+            lineas[i] = "    prodvers=("+version_comas+", 0),"    
+            
+
+            break
+
+    
+    with open(nombre_archivo, 'w') as archivo:
+        archivo.writelines(lineas)
+
+
