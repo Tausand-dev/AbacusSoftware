@@ -964,6 +964,7 @@ class SettingsDialog(QtWidgets.QDialog):
         lines += ["DELIMITER = '%s'"%delimiter]
         self.updateConstants(lines)
         if update_parent: self.parent.updateConstants()
+        
 
     def accept_replace(self):
         self.constantsWriter()
@@ -977,7 +978,7 @@ class SettingsDialog(QtWidgets.QDialog):
             print(e)
 
     def updateConstants(self, lines):
-        [exec("constants.%s"%line) for line in lines]
+        valores=[exec("constants.%s"%line) for line in lines]
 
     def setConstants(self):
         try:

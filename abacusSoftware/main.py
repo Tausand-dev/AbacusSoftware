@@ -478,15 +478,18 @@ class MainWindow(QMainWindow):
         
 
     def checkFileName(self, name):
-        
-        if "." in name:
+        name_route=name.split('/')
+        if len(name_route) >1:
+            name_data_file=name_route[-1]
+        else:
+            name_data_file=name
+        if "." in name_data_file:
         #Para Windows
         #if constants.CURRENT_OS in constants.WINDOWS_NAMES:
-
+            
             values = name.split(".")
-            name= ""
-            for i in range(len(values)-1):
-                name+=values[i]
+            new_string=name.replace("."+str(values[-1]),"")
+            name= new_string
             ext=values[-1]
             ext = ".%s" % ext
         else:
