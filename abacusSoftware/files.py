@@ -166,3 +166,100 @@ class RingBuffer():
             return self.get()
         else:
             return self.get()[self.size-self.index :]
+
+class Accidentals_file():
+    def __init__(self, dataFile:ResultsFiles):
+        self.dataFile=dataFile
+        self.name_file= self.dataFile.data_file.name
+        
+        
+    def addheader(self, header,combinations,data,dataRing:RingBuffer):
+        new_header=[]
+        normal_row=len(combinations)
+        #List to get the accidental channels and include in the data file
+        list_index=[]
+        accidental_list=["AB Acc","AC Acc","AD Acc","BC Acc","BD Acc","CD Acc"]        
+        
+    
+        for i in header:
+            if "Acc" in i:
+                temp_value="Counts "+i
+                new_header.append(temp_value)
+                index=accidental_list.index(i)
+                list_index.append(index)
+        
+        header=new_header
+        if len(data)>0:
+            # try:
+            with open(self.name_file, 'r') as archivo:
+                lineas = archivo.readlines()
+            total_data=len(data)
+            total_lines=len(lineas)
+            dif_lines_data=total_lines-total_data
+            
+                
+
+            if not lineas:
+                raise ValueError("The file is not created yet")
+
+            # Add new header to the first line
+            header_str = ','.join(header)
+            primera_linea = lineas[0].strip() + ',' + header_str + '\n'
+            lineas[0] = primera_linea
+            # Modify the rest of the lines except the first and second
+            for i in range(dif_lines_data, len(lineas)):
+                fila = lineas[i].strip().split(',')
+                value_row=len(fila)
+                
+                old_line=""
+                for k in range(normal_row+2):
+                    old_line+=fila[k]+","
+                
+                new_data = []
+                
+                current_data=data[i-dif_lines_data]
+                
+                
+                for j in range(normal_row+2,len(current_data)):
+                    value=j-normal_row-2
+                    new_data.append(str(round(current_data[normal_row+2 + value])))
+                    
+                
+                old_line_processed = ','.join(old_line.strip().split(','))
+                new_data_processed = ','.join(new_data)
+                
+                nueva_fila = old_line_processed + new_data_processed + ',\n'
+                lineas[i] = nueva_fila
+                
+
+            # Write back the modified lines
+            with open(self.name_file, 'w') as archivo:
+                archivo.writelines(lineas)
+    
+
+
+            # except Exception as e:
+            #         print(f"Can't process the file: {e}")
+
+
+class G2_file():
+    def __init__(self, filename,data,header,parameter):
+        self.filename=filename
+        self.data=data
+        self.header=header
+        self.parameter=parameter
+        
+    def writefile(self):
+        with open(self.filename, 'w') as file:    
+            file.write(','.join(self.parameter) + '\n')
+            file.write(','.join(self.header) + '\n')
+            for row in self.data:
+                row_int = list(map(int, row[:-1]))
+                row_int.append(row[-1])
+                file.write(','.join(map(str, row_int)) + '\n')
+    
+    
+    
+        
+
+    
