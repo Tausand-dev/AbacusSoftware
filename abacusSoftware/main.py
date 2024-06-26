@@ -11,6 +11,7 @@ from itertools import combinations
 from time import time, localtime, strftime, sleep
 from random import randrange
 import qtmodern.styles
+import itertools as it
 
 from serial.serialutil import SerialException, SerialTimeoutException
 
@@ -28,7 +29,7 @@ import abacusSoftware.builtin as builtin
 import abacusSoftware.url as url
 from abacusSoftware.menuBar import AboutWindow
 from abacusSoftware.exceptions import ExtentionError
-from abacusSoftware.files import ResultsFiles, RingBuffer
+from abacusSoftware.files import Accidentals_file, ResultsFiles, RingBuffer
 from abacusSoftware.supportWidgets import Table, CurrentLabels, ConnectDialog, \
     SettingsDialog, SubWindow, ClickableLineEdit, Tabs, SamplingWidget, \
     PlotConfigsDialog
@@ -48,6 +49,10 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(QMainWindow, self).__init__(parent)
         abacus.setLogfilePath(self.getWorkingDirectory())
+        self.total_countsA=0
+        self.total_countsB=0
+        self.total_countsC=0
+        self.total_countsD=0
         self.port_name = None
         self.start_position = None
         self.sentinel_prefix=0
@@ -264,6 +269,7 @@ class MainWindow(QMainWindow):
         self.init_date = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 
         self.data_ring = None
+        self.data_table = np.array([]).reshape(0, 23)
         self.combinations = []
         self.combination_indexes = []
         self.save_as_button.clicked.connect(self.chooseFile)
@@ -283,16 +289,20 @@ class MainWindow(QMainWindow):
         self.menuHelp = self.menubar.addMenu("Help")
 
         self.menuBuildInSweep = QtWidgets.QMenu("Sweep")
+        self.menuBuildInG2 = QAction("g(2) function")
 
         delaySweep = QAction('Delay time', self)
         sleepSweep = QAction('Sleep time', self)
 
         self.menuBuildInSweep.addAction(delaySweep)
         self.menuBuildInSweep.addAction(sleepSweep)
+        self.menuBuildInG2.triggered.connect(self.g2Function)
         delaySweep.triggered.connect(self.delaySweep)
+        
         sleepSweep.triggered.connect(self.sleepSweep)
 
         self.menuBuildIn.addMenu(self.menuBuildInSweep)
+        self.menuBuildIn.addAction(self.menuBuildInG2)
 
         self.statusBar = QtWidgets.QStatusBar(self)
         self.statusBar.setObjectName("statusBar")
@@ -356,6 +366,7 @@ class MainWindow(QMainWindow):
         self.settings_dialog = SettingsDialog(self)
         self.setWindowTitle(constants.WINDOW_NAME)
 
+        self.g2Dialog=builtin.G2Dialog(self)
         self.delaySweepDialog = builtin.DelayDialog(self)
         self.sleepSweepDialog = builtin.SleepDialog(self)
 
@@ -367,7 +378,8 @@ class MainWindow(QMainWindow):
         common.readConstantsFile()
         dirName = common.findDocuments() + "/Tausand"
         if not os.path.exists(dirName):
-            os.mkdir(dirName)  
+            os.mkdir(dirName)
+            
         return dirName
     
 
@@ -379,12 +391,14 @@ class MainWindow(QMainWindow):
         self.active_channels_double = []
         self.active_channels_multiple = []
         self.active_channels = actives
+        self.default_values()
 
         for channel in actives:
+            
             if len(channel) == 1:
                 self.active_channels_single.append(channel)
             elif len(channel) == 2:
-                self.active_channels_double.append(channel)
+                self.active_channels_double.append(channel)                    
             elif len(channel) == 3 or len(channel) == 4:
                 self.active_channels_multiple.append(channel)
 
@@ -396,13 +410,48 @@ class MainWindow(QMainWindow):
         self.current_labels_double.createLabels(self.active_channels_double, self.light_colors_in_use, self.dark_colors_in_use)
         self.current_labels_multiple.createLabels(self.active_channels_multiple, self.light_colors_in_use, self.dark_colors_in_use)
         self.combination_indexes = [i for (i, com) in enumerate(self.combinations) if com in self.active_channels]
+        tabs= self.tabs_widget
+        #accidental_checkbox
+        accidental_check=tabs.accidental_tab_top.checkbox
+        if accidental_check.isChecked():
+            new_indexes=[]
+            final_indexes=[]
+            total_len=len(self.combinations)
+            for j in range (len(self.combinations)):
+                temp_value=self.combinations[j]
+                if temp_value in self.active_channels and len(temp_value)==2:
+                    self.combination_indexes.append(j+total_len-4)
+            for i in self.active_channels:
+                label_temp=i
+                if len(i)==2:
+                    acc_temp=i+" Acc"
+                    new_indexes.append(label_temp)
+                    final_indexes.append(acc_temp)
+                else:
+                    new_indexes.append(label_temp)
+            
+            final_double=[]
+            for i in self.active_channels_double:
+                label_temp=i
+                if len(i)==2:
+                    acc_temp=i+" Acc"
+                    final_double.append(acc_temp)
+                    
+            new_indexes=new_indexes+final_indexes
+            self.active_channels=new_indexes
+            self.active_channels_double=self.active_channels_double+final_double
+            self.current_labels.createLabels(self.active_channels, self.light_colors_in_use, self.dark_colors_in_use)
+            self.current_labels_double.createLabels(self.active_channels_double, self.light_colors_in_use, self.dark_colors_in_use)
+                    
+        
+            
 
         "Clear table"
         self.historical_layout.removeWidget(self.historical_table)
         self.historical_table.deleteLater()
 
         "Create new table"
-        self.historical_table = Table(self.active_channels, self.combination_indexes)
+        self.historical_table = Table(self.active_channels, self.combination_indexes, self)
         self.historical_layout.addWidget(self.historical_table)
 
         self.updateWidgets()
@@ -581,8 +630,19 @@ class MainWindow(QMainWindow):
 
     def clearPlot(self):
         if self.data_ring != None:
+            
             self.data_ring.save()
+            self.accidental_file.addheader(self.active_channels,self.all_combinations,self.data_table,self.data_ring)
             self.data_ring.clear()
+            self.total_countsA=0
+            self.total_countsB=0
+            self.total_countsC=0
+            self.total_countsD=0
+            if self.devicechannels==4:
+                self.data_table = np.array([]).reshape(0, 23)
+            elif self.devicechannels==2:
+                self.data_table = np.array([]).reshape(0, 6)
+            
             for plot in self.plot_lines:
                 plot.setData([], [])
 
@@ -594,6 +654,10 @@ class MainWindow(QMainWindow):
             abacus.close(self.port_name)
             self.port_name = None
             self.data_ring = None
+            self.total_countsA=0
+            self.total_countsB=0
+            self.total_countsC=0
+            self.total_countsD=0
             self.setNumberChannels(0)
             self.subSettings(new=False)
             self.check_timer.stop()
@@ -606,6 +670,7 @@ class MainWindow(QMainWindow):
             try:
                 if self.data_ring != None:
                     self.data_ring.save()
+                    self.accidental_file.addheader(self.active_channels,self.all_combinations,self.data_table,self.data_ring)
                 self.writeGuiSettings()
             except Exception as e:
                 if abacus.constants.DEBUG: print(e)
@@ -669,6 +734,7 @@ class MainWindow(QMainWindow):
             print("Coincidence Window Value: %d" % value)
         try:
             #self.sleepSweepDialog.setCoincidence(value)
+            self.g2Dialog.setCoincidence(value)
             self.delaySweepDialog.setCoincidence(value)
         except AttributeError:
             pass
@@ -733,8 +799,12 @@ class MainWindow(QMainWindow):
             self.connect_dialog = ConnectDialog(self)
             self.connect_dialog.refresh()
             self.connect_dialog.exec_()
+            
 
             port = self.connect_dialog.comboBox.currentText()
+            
+                
+            
 
             #test creado
             
@@ -749,6 +819,7 @@ class MainWindow(QMainWindow):
                     pass
                 n = abacus.getChannelsFromName(port)
                 self.combinations = getCombinations(n)
+                self.all_combinations=self.combinations
 
                 self.setNumberChannels(n)
                 self.acquisition_button.setDisabled(False)
@@ -757,10 +828,12 @@ class MainWindow(QMainWindow):
                 self.connect_button.setText("Disconnect")
 
                 self.subSettings(new=False)
-
+                
+                
                 self.data_ring = RingBuffer(constants.BUFFER_ROWS, len(self.combinations) + 2, self.combinations)
                 if self.results_files != None:
                     self.data_ring.setFile(self.results_files.data_file)
+                    self.accidental_file=Accidentals_file(self.results_files)
 
                 self.port_name = port  # not before
                 settings = abacus.getAllSettings(self.port_name)
@@ -774,6 +847,11 @@ class MainWindow(QMainWindow):
                 else:
                     channels = self.devices_used[self.port_name]
                     self.tabs_widget.simplyCheck(channels)
+                self.default_values()
+                if self.devicechannels==4:
+                    self.data_table = np.array([]).reshape(0, 23)
+                elif self.devicechannels==2:
+                    self.data_table = np.array([]).reshape(0, 6)
             else:
                 self.connect_button.setText("Connect")
                 self.acquisition_button.setDisabled(True)
@@ -808,6 +886,13 @@ class MainWindow(QMainWindow):
     def delaySweep(self):
         self.delaySweepDialog.updateConstants() #new on v1.4.0 (2020-06-30)
         self.delaySweepDialog.show()
+    
+    #Show g2 funciton 
+    def g2Function(self):
+        self.g2Dialog.updateConstants() #new on v1.4.0 (2020-06-30)
+        self.g2Dialog.default_values()
+        self.g2Dialog.show()
+        
 
     def showInformationDialog(self, exception, title):
         information_text = str(exception)
@@ -1141,6 +1226,7 @@ class MainWindow(QMainWindow):
             elif abacus.constants.DEBUG:
                 print("Sampling Value, %d" % value)
         try:
+            self.g2Dialog.setSampling(value)
             self.sleepSweepDialog.setSampling(value)
             self.delaySweepDialog.setSampling(value)
         except AttributeError:
@@ -1177,6 +1263,7 @@ class MainWindow(QMainWindow):
         self.number_channels = n
         self.tabs_widget.setNumberChannels(n)
         self.sampling_widget.changeNumberChannels(n)
+        self.g2Dialog.setNumberChannels(n)
         self.delaySweepDialog.setNumberChannels(n)
         self.sleepSweepDialog.setNumberChannels(n)
         self.tabs_widget.signal()
@@ -1211,6 +1298,7 @@ class MainWindow(QMainWindow):
         self.counts_plot_multiple.getAxis('left').setTextPen(whitePen)
 
         self.theme_action.setText('Light theme')
+        self.g2Dialog.setDarkTheme()
         self.delaySweepDialog.setDarkTheme()
         self.sleepSweepDialog.setDarkTheme()
 
@@ -1269,6 +1357,7 @@ class MainWindow(QMainWindow):
         self.counts_plot_multiple.getAxis('bottom').setTextPen(blackPen)
         self.counts_plot_multiple.getAxis('left').setTextPen(blackPen)
 
+        self.g2Dialog.setLightTheme()
         self.delaySweepDialog.setLightTheme()
         self.sleepSweepDialog.setLightTheme()
 
@@ -1304,6 +1393,7 @@ class MainWindow(QMainWindow):
                     name, ext = self.checkFileName(new_file_name)
                     if self.results_files == None:
                         self.results_files = ResultsFiles(name, ext, self.init_date)
+                        
                         self.results_files.params_file.header += self.params_buffer
                         self.params_buffer = ""
                     else:
@@ -1311,6 +1401,7 @@ class MainWindow(QMainWindow):
                     names = self.results_files.getNames()
                     if self.data_ring != None:
                         self.data_ring.setFile(self.results_files.data_file)
+                        self.accidental_file = Accidentals_file(self.results_files)
                     self.statusBar.showMessage('Files: %s, %s.' % (names))
                     self.statusBarMessage = self.statusBar.currentMessage()
                     try:
@@ -1419,6 +1510,7 @@ class MainWindow(QMainWindow):
         self.data_timer.stop()
         try:
             self.data_ring.save()
+            self.accidental_file.addheader(self.active_channels,self.all_combinations,self.data_table,self.data_ring)
         except FileNotFoundError as e:
             self.errorWindow(e)
 
@@ -1457,7 +1549,7 @@ class MainWindow(QMainWindow):
 
     def subHistorical(self):
         widget = QWidget()
-        self.historical_table = Table([], [])
+        self.historical_table = Table([], [], self)
         self.historical_layout = QVBoxLayout(widget)
 
         self.historical_layout.setSpacing(0)
@@ -1755,14 +1847,26 @@ class MainWindow(QMainWindow):
             if abacus.constants.DEBUG: print(e)
 
     def updateCurrents(self, data):
+        #Calculating the number of accidentals counts
+        number_accidentals=0
+        for i in self.active_channels:
+            if 'Acc' in i:
+                number_accidentals+=1
+            
+        
         for (pos, index) in enumerate(self.combination_indexes):
             self.current_labels.changeValue(pos, data[-1, index + 2])
         for pos, index in enumerate(self.combination_indexes[:len(self.active_channels_single)]):
-            self.current_labels_single.changeValue(pos, data[-1, index + 2])
-        for pos, index in enumerate(self.combination_indexes[len(self.active_channels_single):(len(self.active_channels_single)+len(self.active_channels_double))]):
+            if index< len(self.combinations):
+                self.current_labels_single.changeValue(pos, data[-1, index + 2])
+        for pos, index in enumerate(self.combination_indexes[len(self.active_channels_single):(len(self.active_channels_single)+len(self.active_channels_double)-number_accidentals)]):            
             self.current_labels_double.changeValue(pos, data[-1, index + 2])
+        for pos1, index in enumerate(self.combination_indexes[(len(self.active_channels)-number_accidentals):]):  
+            pos_total=pos+pos1+1     
+            self.current_labels_double.changeValue(pos_total, data[-1, index + 2])
         for pos, index in enumerate(self.combination_indexes[(len(self.active_channels_single)+len(self.active_channels_double)):]):
-            self.current_labels_multiple.changeValue(pos, data[-1, index + 2])
+            if index< len(self.combinations):
+                self.current_labels_multiple.changeValue(pos, data[-1, index + 2])
 
     def updateData(self):
         def get(counters, time_, id):
@@ -1830,13 +1934,25 @@ class MainWindow(QMainWindow):
     def updatePlots(self, data):
         time_ = data[:, 0]
         for (i, j) in enumerate(self.combination_indexes):
-            self.plot_lines[i].setData(time_, data[:, j + 2])
+            if i< len(self.plot_lines) and j< len(self.combinations):
+                index=self.combination_indexes.index(j)
+                if 'Acc' not in self.active_channels[index]:
+                    self.plot_lines[i].setData(time_, data[:, j + 2])
         for (i, j) in enumerate(self.combination_indexes[:len(self.active_channels_single)]):
-            self.plot_lines_single[i].setData(time_, data[:, j + 2])
+            if i< len(self.plot_lines_single) and j< len(self.combinations):
+                index=self.combination_indexes.index(j)
+                if 'Acc' not in self.active_channels[index]:
+                    self.plot_lines_single[i].setData(time_, data[:, j + 2])
         for (i, j) in enumerate(self.combination_indexes[len(self.active_channels_single):(len(self.active_channels_single)+len(self.active_channels_double))]):
-            self.plot_lines_double[i].setData(time_, data[:, j + 2])
+            if i< len(self.plot_lines_double) and j< len(self.combinations):
+                index=self.combination_indexes.index(j)
+                if 'Acc' not in self.active_channels[index]:
+                    self.plot_lines_double[i].setData(time_, data[:, j + 2])
         for (i, j) in enumerate(self.combination_indexes[(len(self.active_channels_single)+len(self.active_channels_double)):]):
-            self.plot_lines_multiple[i].setData(time_, data[:, j + 2])
+            if i< len(self.plot_lines_multiple) and j< len(self.combinations):
+                index=self.combination_indexes.index(j)
+                if 'Acc' not in self.active_channels[index]:
+                    self.plot_lines_multiple[i].setData(time_, data[:, j + 2])
 
     def updateTable(self, data):
         self.historical_table.insertData(data)
@@ -1845,9 +1961,68 @@ class MainWindow(QMainWindow):
         if self.data_ring != None:
             data = self.data_ring[:]
             if data.shape[0]:
-                self.updatePlots(data)
-                self.updateTable(data)
-                self.updateCurrents(data)
+                
+                if self.devicechannels==4:
+                    self.total_countsA=data[-1][2]
+                    self.total_countsB=data[-1][3]
+                    self.total_countsC=data[-1][4]
+                    self.total_countsD=data[-1][5]    
+                    
+                    #The value from the widget is given in ns
+                    coincidence_value=(self.coincidence_spinBox.value())/(10**9)
+                    #Resolution of the device given in ns
+                    resolution=self.deviceresolution/(10**9)
+                    D_tw=2*(coincidence_value+(resolution/2))
+                    #The value from the widget is given in ms
+                    T=(self.sampling_widget.getValue())/1000
+    
+                    
+                    dataABACC=round((self.total_countsA*self.total_countsB*D_tw)/T)
+                    dataACACC=round((self.total_countsA*self.total_countsC*D_tw)/T)
+                    dataADACC=round((self.total_countsA*self.total_countsD*D_tw)/T)
+                    dataBCACC=round((self.total_countsB*self.total_countsC*D_tw)/T)
+                    dataBDACC=round((self.total_countsB*self.total_countsD*D_tw)/T)
+                    dataCDACC=round((self.total_countsC*self.total_countsD*D_tw)/T)
+                    data_current=data[-1]
+                    
+                    data_current=np.append(data_current,dataABACC)
+                    data_current=np.append(data_current,dataACACC)
+                    data_current=np.append(data_current,dataADACC)
+                    data_current=np.append(data_current,dataBCACC)
+                    data_current=np.append(data_current,dataBDACC)
+                    data_current=np.append(data_current,dataCDACC)
+                    #Local variable to reshape the last data
+                    data_table=np.array([data_current])
+                    
+                    if len(self.data_table)==0:
+                        self.data_table=np.vstack([self.data_table,data_current])
+                        self.updatePlots(data)
+                        self.updateTable(self.data_table)
+                        self.updateCurrents(self.data_table)
+                    elif not (self.data_table[-1] == data_current).all():
+                        self.data_table=np.vstack([self.data_table,data_current])
+                        self.updatePlots(data)
+                        self.updateTable(self.data_table)
+                        self.updateCurrents(self.data_table)
+                elif self.devicechannels==2:
+                    self.total_countsA=data[-1][2]
+                    self.total_countsB=data[-1][3]
+                    #The value from the widget is given in ns
+                    coincidence_value=(self.coincidence_spinBox.value())/(10**9)
+                    #Resolution of the device given in ns
+                    resolution=self.deviceresolution/(10**9)
+                    D_tw=2*(coincidence_value+(resolution/2))
+                    #The value from the widget is given in ms
+                    T=(self.sampling_widget.getValue())/1000
+                    dataABACC=round((self.total_countsA*self.total_countsB*D_tw)/T)
+                    data_current=data[-1]
+                    data_current=np.append(data_current,dataABACC)
+                    #Local variable to reshape the last data
+                    data_table=np.array([data_current])
+                    self.data_table=np.vstack([self.data_table,data_current])
+                    self.updatePlots(data)
+                    self.updateTable(self.data_table)
+                    self.updateCurrents(self.data_table)
 
     def writeParams(self, message):
         exceptions = ["Connected", "Acquisition"]
@@ -1984,6 +2159,30 @@ class MainWindow(QMainWindow):
         settings.setValue("time_range_for_plots", self.plots_combo_box.currentIndex())
         settings.setValue("symbol_size", self.symbolSize)
         settings.setValue("linewidth", self.linewidth)
+    def default_values(self):
+        if self.port_name!=None:
+            value=abacus.core.getIdn(self.port_name)
+            match = re.search(r'(\d+)$', value)
+            resolution=""
+            channels=""
+            if match:
+                full_number = match.group(1)
+                if len(full_number) >= 4:
+                    resolution = full_number[:2]
+                    channels = full_number[-2:]
+            
+            if resolution=="15":
+                #set the value in 2 ns for abacus 15XX
+                self.deviceresolution=2
+                
+            elif resolution=="10":    
+                #set the value in 5 ns for abacus 10XX
+                self.deviceresolution=5
+            
+            if channels=="02":
+                self.devicechannels=2
+            elif channels=="04":
+                self.devicechannels=4
 
     def readGuiSettings(self):
         settings = QtCore.QSettings("tausand", "abacus_software")
@@ -2171,6 +2370,7 @@ def exceptHook(exctype, value, tb):
     print('Traceback:', tb.format_exc())
 
     return
+
 
 
 def open_stdout():
