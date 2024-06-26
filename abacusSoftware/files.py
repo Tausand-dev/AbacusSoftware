@@ -197,6 +197,7 @@ class Accidentals_file():
             total_lines=len(lineas)
             dif_lines_data=total_lines-total_data
             
+            
                 
 
             if not lineas:

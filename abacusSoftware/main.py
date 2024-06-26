@@ -420,7 +420,11 @@ class MainWindow(QMainWindow):
             for j in range (len(self.combinations)):
                 temp_value=self.combinations[j]
                 if temp_value in self.active_channels and len(temp_value)==2:
-                    self.combination_indexes.append(j+total_len-4)
+                    if self.devicechannels==4:
+                        self.combination_indexes.append(j+total_len-4)
+                    if self.devicechannels==2:
+                        self.combination_indexes.append(j+total_len-2)
+                        
             for i in self.active_channels:
                 label_temp=i
                 if len(i)==2:
@@ -2019,10 +2023,17 @@ class MainWindow(QMainWindow):
                     data_current=np.append(data_current,dataABACC)
                     #Local variable to reshape the last data
                     data_table=np.array([data_current])
-                    self.data_table=np.vstack([self.data_table,data_current])
-                    self.updatePlots(data)
-                    self.updateTable(self.data_table)
-                    self.updateCurrents(self.data_table)
+                    if len(self.data_table)==0:
+                        self.data_table=np.vstack([self.data_table,data_current])
+                        self.updatePlots(data)
+                        self.updateTable(self.data_table)
+                        self.updateCurrents(self.data_table)
+                    elif not (self.data_table[-1] == data_current).all():
+                        self.data_table=np.vstack([self.data_table,data_current])
+                        self.updatePlots(data)
+                        self.updateTable(self.data_table)
+                        self.updateCurrents(self.data_table)
+                        
 
     def writeParams(self, message):
         exceptions = ["Connected", "Acquisition"]
