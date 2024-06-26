@@ -48,7 +48,7 @@ class SamplingWidget(object):
         elif value > 10000 and value<1000000000:
             index = self.widget.findText('%.1f s' % (value / 1000))                
         else:
-            raise ValueError("The sampling time is too high. If you are using an Abacus device, it is possible that it needs maintenance. If you are emulating data, check the condigured sampling parameter")
+            raise ValueError("The sampling time is too high. If you are using an Abacus device, it is possible that it needs maintenance. If you are emulating data, check the configured sampling parameter")
         self.widget.setCurrentIndex(index)
 
     def changeNumberChannels(self, number_channels):
@@ -102,6 +102,10 @@ class currentPlotCheckboxLabelButtons(QWidget):
         self.layout.addWidget(self.currentWindowButton, 0, 4)
         self.layout.addWidget(self.plotWindowButton, 0, 5)
         self.setLayout(self.layout)
+        
+        if label=="Accidental":
+            self.plotWindowButton.setVisible(False)
+            self.currentWindowButton.setVisible(False)
 
     def showHideCurrentWindow(self):
         label = self.label.text()
@@ -186,16 +190,17 @@ class currentPlotCheckboxLabelButtons(QWidget):
             self.plotWindowButton.setIcon(QIcon(':/plot_icon_dark.png'))
 
     def updateCheckboxes(self, check_state):
-        if self.label.text() == "Single":
-            letters = self.parent.letters
-        elif self.label.text() == "Double":
-            letters = self.parent.double
-        for letter in letters:
-            checkbox = getattr(self.parent, letter)
-            if check_state == QtCore.Qt.Checked: 
-                checkbox.setChecked(True)
-            elif check_state == QtCore.Qt.Unchecked:
-                checkbox.setChecked(False)
+        if self.label.text() != "Accidental":
+            if self.label.text() == "Single":
+                letters = self.parent.letters
+            elif self.label.text() == "Double":
+                letters = self.parent.double
+            for letter in letters:
+                checkbox = getattr(self.parent, letter)
+                if check_state == QtCore.Qt.Checked: 
+                    checkbox.setChecked(True)
+                elif check_state == QtCore.Qt.Unchecked:
+                    checkbox.setChecked(False)
 
 class Tabs(QFrame):
     MAX_CHECKED_4CH = 1
@@ -238,6 +243,8 @@ class Tabs(QFrame):
 
         self.single_tab_top = currentPlotCheckboxLabelButtons("Single",self)
         self.double_tab_top = currentPlotCheckboxLabelButtons("Double",self)
+        self.accidental_tab_top = currentPlotCheckboxLabelButtons("Accidental",self)
+        self.accidental_tab_top.checkbox.stateChanged.connect(self.signal_accidental)
         self.multiple_tab_top = currentPlotCheckboxLabelButtons("Multiple",self)
 
         self.buttons_widget = QWidget()
@@ -258,6 +265,7 @@ class Tabs(QFrame):
         self.layout.addWidget(self.single_tab_top)
         self.layout.addWidget(scrollArea1)
         self.layout.addWidget(self.double_tab_top)
+        self.layout.addWidget(self.accidental_tab_top)
         self.layout.addWidget(scrollArea2)
         self.layout.addWidget(self.multiple_tab_top)
         self.layout.addWidget(scrollArea3)
@@ -267,23 +275,29 @@ class Tabs(QFrame):
         scrollArea3.setWidget(self.multiple_tab)
 
     def createSingle(self, letter, layout, letters):
-        widget = QCheckBox(letter)
-        widget.setChecked(False)
-        setattr(self, letter, widget)
-        if len(letter) == 1:
-            n_widgets_created = len(self.single_tab.findChildren(QCheckBox))
-        elif len(letter) == 2:
-            n_widgets_created = len(self.double_tab.findChildren(QCheckBox))
-        elif len(letter) == 3 or len(letter) == 4:
-            n_widgets_created = len(self.multiple_tab.findChildren(QCheckBox))
- 
-        # Puts the checkboxes in two columns
-        if n_widgets_created < len(letters)/2:
-            row = n_widgets_created
-            layout.addWidget(widget, row, 0)
+        if layout != self.accidental_tab_top:
+            widget = QCheckBox(letter)
+            widget.setChecked(False)
+        
+            setattr(self, letter, widget)
+            if len(letter) == 1:
+                n_widgets_created = len(self.single_tab.findChildren(QCheckBox))
+            elif len(letter) == 2:
+                n_widgets_created = len(self.double_tab.findChildren(QCheckBox))
+            elif len(letter) == 3 or len(letter) == 4:
+                n_widgets_created = len(self.multiple_tab.findChildren(QCheckBox))
+    
+            # Puts the checkboxes in two columns
+            
+            if n_widgets_created < len(letters)/2:
+                row = n_widgets_created
+                layout.addWidget(widget, row, 0)
+            else:
+                row = int(n_widgets_created-len(letters)/2) #v1.6.0: cast to int
+                layout.addWidget(widget, row, 1)
         else:
-            row = int(n_widgets_created-len(letters)/2) #v1.6.0: cast to int
-            layout.addWidget(widget, row, 1)
+            widget = QCheckBox("Accidental")
+            widget.setChecked(False)
 
         return widget
 
@@ -300,7 +314,7 @@ class Tabs(QFrame):
                 self.multiple += ["".join(pair) for pair in combinations(joined, i) if len(pair) == 3 or len(pair) == 4]
 
         self.all = self.letters + self.double + self.multiple
-
+        
         for letter in self.letters:
             widget = self.createSingle(letter, self.single_tab_layout, self.letters)
             widget.stateChanged.connect(self.signal)
@@ -324,6 +338,10 @@ class Tabs(QFrame):
             self.double_tab_top.plotWindowButton.setEnabled(True)
             self.double_tab_top.currentWindowButton.setToolTip("Show or hide current window")
             self.double_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
+            self.accidental_tab_top.currentWindowButton.setEnabled(True)
+            self.accidental_tab_top.plotWindowButton.setEnabled(True)
+            self.accidental_tab_top.currentWindowButton.setToolTip("Show or hide current window")
+            self.accidental_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
             self.single_tab_top.currentWindowButton.setEnabled(True)
             self.single_tab_top.plotWindowButton.setEnabled(True)
             self.single_tab_top.currentWindowButton.setToolTip("Show or hide current window")
@@ -342,6 +360,10 @@ class Tabs(QFrame):
             self.double_tab_top.plotWindowButton.setEnabled(True)
             self.double_tab_top.currentWindowButton.setToolTip("Show or hide current window")
             self.double_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
+            self.accidental_tab_top.currentWindowButton.setEnabled(True)
+            self.accidental_tab_top.plotWindowButton.setEnabled(True)
+            self.accidental_tab_top.currentWindowButton.setToolTip("Show or hide current window")
+            self.accidental_tab_top.plotWindowButton.setToolTip("Show or hide plot window")
             self.single_tab_top.currentWindowButton.setEnabled(True)
             self.single_tab_top.plotWindowButton.setEnabled(True)
             self.single_tab_top.currentWindowButton.setToolTip("Show or hide current window")
@@ -378,6 +400,9 @@ class Tabs(QFrame):
 
     def signal(self):
         self.parent.activeChannelsChanged(self.getChecked())
+    def signal_accidental(self):
+        self.parent.activeChannelsChanged(self.getChecked())
+        
 
     def signalMultiple(self, user_input = True):
         multiple_checked = [letter for letter in self.multiple if getattr(self, letter).isChecked()]
@@ -416,7 +441,8 @@ class Tabs(QFrame):
 
         """
         for letter in letters:
-            getattr(self, letter).setChecked(True)
+            if "Acc" not in letter:
+                getattr(self, letter).setChecked(True)
 
     def setChecked(self, letters):
         if len(letters) <= 2:
@@ -428,6 +454,7 @@ class Tabs(QFrame):
     def changeButtonsIcons(self):
         self.single_tab_top.updateButtonsIcons()
         self.double_tab_top.updateButtonsIcons()
+        self.accidental_tab_top.updateButtonsIcons()
         self.multiple_tab_top.updateButtonsIcons()
 
         if constants.IS_LIGHT_THEME:
@@ -496,8 +523,10 @@ class Tabs(QFrame):
             self.double_tab_top.checkbox.blockSignals(False)
 
 class Table(QtWidgets.QTableWidget):
-    def __init__(self, active_labels, active_indexes):
+    def __init__(self, active_labels, active_indexes, main):
         QtWidgets.QTableWidget.__init__(self)
+        
+        
         cols = len(active_indexes) + 2
         self.setColumnCount(cols)
         self.horizontalHeader().setSortIndicatorShown(False)
@@ -508,7 +537,7 @@ class Table(QtWidgets.QTableWidget):
         self.last_data = 0
         self.n_active = len(active_indexes)
         self.active_indexes = active_indexes
-
+        self.tabs_widget=main.tabs_widget
         self.headers = ['Time (s)', 'ID'] + active_labels
         self.setHorizontalHeaderLabels(self.headers)
         self.resizeRowsToContents()
@@ -518,6 +547,7 @@ class Table(QtWidgets.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True);
 
     def insertData(self, data):
+        
         rows, cols = data.shape
         data = data[self.last_data : ]
         self.last_data = rows
@@ -636,13 +666,14 @@ class CurrentLabels(QtWidgets.QWidget):
 
     def createLabels(self, labels, light_colors, dark_colors):
         self.removeLabels()
+        substring="Acc"
         if not constants.IS_LIGHT_THEME:
             plots_info = dark_colors
         else:
             plots_info = light_colors
         for name in labels:
             label = AutoSizeLabel(name, "0")
-            color = plots_info[name][0]
+            color = plots_info[name.replace("Acc","").replace(" ","")][0]
             self.setColor(label, color)
             self.layout.addWidget(label)
             self.labels.append(label)
@@ -661,7 +692,8 @@ class CurrentLabels(QtWidgets.QWidget):
             self.setColor(label, color)
 
     def changeValue(self, index, value):
-        self.labels[index].changeValue(value)
+        if index<len(self.labels):
+            self.labels[index].changeValue(value)
 
     def eventFilter(self, object, evt):
         """ Checks if there is the window size has changed.
@@ -964,7 +996,6 @@ class SettingsDialog(QtWidgets.QDialog):
         lines += ["DELIMITER = '%s'"%delimiter]
         self.updateConstants(lines)
         if update_parent: self.parent.updateConstants()
-        
 
     def accept_replace(self):
         self.constantsWriter()
@@ -978,7 +1009,7 @@ class SettingsDialog(QtWidgets.QDialog):
             print(e)
 
     def updateConstants(self, lines):
-        valores=[exec("constants.%s"%line) for line in lines]
+        [exec("constants.%s"%line) for line in lines]
 
     def setConstants(self):
         try:
