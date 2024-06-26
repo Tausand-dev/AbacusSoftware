@@ -1,0 +1,27 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath} % Required for using equation*
+
+\title{AbacusSoftware Helpg2}
+\author{Tausand Electronics }
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+The $g^{(2)}$ function is calculated as follows:
+
+\begin{equation*}
+g^{(2)}(\tau)=\frac{N_{12}(\tau)T}{2N_1N_2\Delta_{tw}}
+\end{equation*}
+
+Where:
+\begin{itemize}
+    \item $N_{12}(\tau)$ are the coincidences of the chosen channels found at each point.
+    \item $N_1$ are the total counts of the chosen channel 1.
+    \item $N_2$ are the total counts of the chosen channel 2.
+    \item $T$ is the sampling time,
+    \item $\Delta_{tw}$ = $  (CoinW + \frac{res}{2})$. ($CoinW$ is the coincidence window and $res$ is the resolution)
+\end{itemize}
+\end{document}
