@@ -736,6 +736,7 @@ class G2Dialog(SweepDialogBase):
     def __init__(self, parent):
         super(G2Dialog, self).__init__(parent)
         self.setWindowTitle("g(2) Function")
+        self.oldValuesSentinel=0
         self.g2constant=True
         self.comboBox1 = QComboBox()
         self.comboBox2 = QComboBox()
@@ -1277,8 +1278,10 @@ class G2Dialog(SweepDialogBase):
 
 
     def default_values(self):
-        self.oldsampling=self.parent.sampling_widget.getValue()
-        self.oldcoincidence=self.parent.coincidence_spinBox.value()
+        if self.oldValuesSentinel==0:
+            self.oldsampling=self.parent.sampling_widget.getValue()
+            self.oldcoincidence=self.parent.coincidence_spinBox.value()
+            self.oldValuesSentinel=1
         if self.parent.port_name!=None:
             value=abacus.core.getIdn(self.parent.port_name)
             match = re.search(r'(\d+)$', value)
