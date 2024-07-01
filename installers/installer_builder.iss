@@ -22,8 +22,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\TempicoInstaller
-OutputBaseFilename=AbacusSetup-1.6.1
+OutputBaseFilename=AbacusSetup-{#MyAppVersion}
 SetupIconFile=..\abacusSoftware\GUI\images\abacus_small.ico
 Compression=lzma
 SolidCompression=yes
