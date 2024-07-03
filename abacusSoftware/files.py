@@ -204,9 +204,10 @@ class Accidentals_file():
                 raise ValueError("The file is not created yet")
 
             # Add new header to the first line
-            header_str = ','.join(header)
+            header_str = ','.join(accidental_list)
             primera_linea = lineas[0].strip() + ',' + header_str + '\n'
-            lineas[0] = primera_linea
+            if 'Acc' not in lineas[0]:
+                lineas[0] = primera_linea
             # Modify the rest of the lines except the first and second
             for i in range(dif_lines_data, len(lineas)):
                 fila = lineas[i].strip().split(',')
