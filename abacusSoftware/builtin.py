@@ -443,7 +443,8 @@ class DelayDialog(SweepDialogBase):
             self.error = None
 
         if self.completed:
-            
+            self.saveButton.setEnabled(True)
+            self.savePlotsButton.setEnabled(True)
             self.timer.stop()
             self.completed = False
             self.startStopButton.setText("Start")
@@ -1058,6 +1059,8 @@ class G2Dialog(SweepDialogBase):
             self.parent.errorWindow(self.error)
             self.error = None
         if self.completed:
+            self.saveButton.setEnabled(True)
+            self.savePlotsButton.setEnabled(True)
             self.timer.stop()
             self.completed = False
             self.startStopButton.setText("Start")
@@ -1628,8 +1631,8 @@ class SleepDialog(SweepDialogBase):
             self.error = None
 
         if self.completed:
-
-            
+            self.saveButton.setEnabled(True)
+            self.savePlotsButton.setEnabled(True)
             self.timer.stop()
             self.completed = False
             self.startStopButton.setText("Start")
