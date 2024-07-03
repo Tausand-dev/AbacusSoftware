@@ -784,8 +784,6 @@ class G2Dialog(SweepDialogBase):
         #defined the total integration time to calculate the g(2)
         #set default value in 0
         self.totalTime=0
-        self.totalCounts1=0
-        self.totalCounts2=0
         self.dt_w=0
         self.mulConst=0
         # set the coincide time in ns
@@ -972,8 +970,6 @@ class G2Dialog(SweepDialogBase):
             self.g2data = []
             self.saveg2sentinel=0
             self.saveg2route=""
-            self.totalCounts1=0
-            self.totalCounts2=0
             self.default_values()
             step = self.stepSpin.value()
             n = self.nSpin.value()
@@ -1099,8 +1095,6 @@ class G2Dialog(SweepDialogBase):
         self.y_datach1 = []
         self.y_datach2= []
         self.g2data = []
-        self.totalCounts1=0
-        self.totalCounts2=0
         self.plot_line.setData(self.x_data, self.g2data)
         
         # self.plot_line1.setData(self.x_data, self.y_datach1)
@@ -1188,8 +1182,8 @@ class G2Dialog(SweepDialogBase):
                     self.y_data.append(value / n)
                     self.y_datach1.append(valuech1 / n) #(new sept-15-2021)
                     self.y_datach2.append(valuech2 / n) #(new sept-15-2021)
-                    self.totalCounts1+=valuech1 / n
-                    self.totalCounts2+=valuech2 / n
+                    self.totalCounts1=valuech1 / n
+                    self.totalCounts2=valuech2 / n
                     #get the point of coincidences for g(2)
                     coincidences=value/n
                     counts12=self.totalCounts1*self.totalCounts2
@@ -1198,13 +1192,6 @@ class G2Dialog(SweepDialogBase):
                     else:
                         #Define 0 if there is no counts
                         g2value=0
-                    for i in range(len(self.g2data)):
-                        coincidence_point=self.y_data[i]
-                        if counts12!=0:
-                            new_g2value=(coincidence_point/counts12)*self.mulConst
-                        else:
-                            new_g2value=0
-                        self.g2data[i]=new_g2value
                         
                     self.g2data.append(g2value)
                     
