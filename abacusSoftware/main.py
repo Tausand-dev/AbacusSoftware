@@ -481,29 +481,28 @@ class MainWindow(QMainWindow):
 
         if constants.CURRENT_OS in constants.WINDOWS_NAMES:
             if name in constants.NOT_SUPPORTED_WINDOWS_RESERVED_WORDS:
+                
                 name="abacusdata"
-                alert=QMessageBox()
+                alert=QMessageBox(self)
                 alert.setIcon(QMessageBox.Icon.Warning)
                 alert.setWindowTitle("Invalid Prefix data name")
                 alert.setText('Invalid Prefix data name. The prefix name has been changed to abacusdata. Check that name in the file is not a reserved word. Reserved words are: CON, PRN, AUX, NUL,COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9,LPT1, LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,COM,LPT')
-                alert.setStyleSheet("QMessageBox { background-color: white; }")
                 alert.exec_()
                 
 
             if any(correctname in name for correctname in constants.NOT_SUPPORTED_WINDOWS_CHARACTER_NAMES):
                 name="abacusdata"
-                alert=QMessageBox()
+                alert=QMessageBox(self)
                 alert.setIcon(QMessageBox.Icon.Warning)
                 alert.setWindowTitle("Invalid Prefix data name")
                 alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: <,>,:,",//,\\,|,?,*')
-                alert.setStyleSheet("QMessageBox { background-color: white; }")
                 alert.exec_()
             else:
                 name=name
         elif constants.CURRENT_OS in constants.MAC_NAMES:
             if any(correctname in name for correctname in constants.NOT_SUPPORTED_MAC_CHARACTER):
                 nname="abacusdata"
-                alert=QMessageBox()
+                alert=QMessageBox(self)
                 alert.setIcon(QMessageBox.Icon.Warning)
                 alert.setWindowTitle("Invalid Prefix data name")
                 alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: :,\\')
@@ -514,7 +513,7 @@ class MainWindow(QMainWindow):
         elif constants.CURRENT_OS in constants.LINUX_NAMES:
             if any(correctname in name for correctname in constants.NOT_SUPPORTED_LINUX_CHARACTER):
                 name="abacusdata"
-                alert=QMessageBox()
+                alert=QMessageBox(self)
                 alert.setIcon(QMessageBox.Icon.Warning)
                 alert.setWindowTitle("Invalid Prefix data name")
                 alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: :,\\')
