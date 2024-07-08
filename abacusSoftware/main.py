@@ -391,7 +391,7 @@ class MainWindow(QMainWindow):
         self.active_channels_double = []
         self.active_channels_multiple = []
         self.active_channels = actives
-        self.default_values()
+        #self.default_values()
 
         for channel in actives:
             
@@ -506,7 +506,6 @@ class MainWindow(QMainWindow):
                 alert.setIcon(QMessageBox.Icon.Warning)
                 alert.setWindowTitle("Invalid Prefix data name")
                 alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: :,\\')
-                alert.setStyleSheet("QMessageBox { background-color: white; }")
                 alert.exec_()
             else:
                 name=name              
@@ -517,7 +516,6 @@ class MainWindow(QMainWindow):
                 alert.setIcon(QMessageBox.Icon.Warning)
                 alert.setWindowTitle("Invalid Prefix data name")
                 alert.setText('Invalid characters in prefix name. The prefix name has been changed to abacusdata. Check the list of invalid characters: :,\\')
-                alert.setStyleSheet("QMessageBox { background-color: white; }")
                 alert.exec_()
             else:
                 name=name              
@@ -816,6 +814,11 @@ class MainWindow(QMainWindow):
 
             if port != "":
                 try:
+                    chain=port.split(' ')
+                    port_name=chain[-1]
+                    port_name=port_name.replace('(','')
+                    port_name=port_name.replace(')','')
+                    self.default_values(port_name)
                     abacus.open(port)
                     
                 except abacus.AbacusError:
@@ -850,7 +853,7 @@ class MainWindow(QMainWindow):
                 else:
                     channels = self.devices_used[self.port_name]
                     self.tabs_widget.simplyCheck(channels)
-                self.default_values()
+                
                 if self.devicechannels==4:
                     self.data_table = np.array([]).reshape(0, 23)
                 elif self.devicechannels==2:
@@ -2169,31 +2172,12 @@ class MainWindow(QMainWindow):
         settings.setValue("time_range_for_plots", self.plots_combo_box.currentIndex())
         settings.setValue("symbol_size", self.symbolSize)
         settings.setValue("linewidth", self.linewidth)
-    def default_values(self):
-        if self.port_name!=None:
-            value=abacus.core.getIdn(self.port_name)
-            match = re.search(r'(\d+)$', value)
-            resolution=""
-            channels=""
-            if match:
-                full_number = match.group(1)
-                if len(full_number) >= 4:
-                    resolution = full_number[:2]
-                    channels = full_number[-2:]
+    def default_values(self,port):
+        if port!=None:
+            claseAbacus=abacus.core.AbacusSerial(port)
+            self.deviceresolution=round(claseAbacus.getResolution())
+            self.devicechannels=round(claseAbacus.getNChannels())
             
-            if resolution=="15":
-                #set the value in 2 ns for abacus 15XX
-                self.deviceresolution=2
-                
-            elif resolution=="10":    
-                #set the value in 5 ns for abacus 10XX
-                self.deviceresolution=5
-            
-            if channels=="02":
-                self.devicechannels=2
-            elif channels=="04":
-                self.devicechannels=4
-
     def readGuiSettings(self):
         settings = QtCore.QSettings("tausand", "abacus_software")
 

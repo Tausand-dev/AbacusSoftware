@@ -1272,29 +1272,10 @@ class G2Dialog(SweepDialogBase):
             self.oldsampling=self.parent.sampling_widget.getValue()
             self.oldcoincidence=self.parent.coincidence_spinBox.value()
             self.oldValuesSentinel=1
-        if self.parent.port_name!=None:
-            value=abacus.core.getIdn(self.parent.port_name)
-            match = re.search(r'(\d+)$', value)
-            resolution=""
-            channels=""
-            if match:
-                full_number = match.group(1)
-                if len(full_number) >= 4:
-                    resolution = full_number[:2]
-                    channels = full_number[-2:]
-            
-            if resolution=="15":
-                #set the value in 2 ns for abacus 15XX
-                self.parent.coincidence_spinBox.setValue(2)
-                self.stepSpin.setValue(2)
-                
-            elif resolution=="10":    
-                #set the value in 5 ns for abacus 10XX
-                self.parent.coincidence_spinBox.setValue(5)
-                self.stepSpin.setValue(5)
-        #The user will not be able to change this values for g2 function
-        #The user only select the channels for the coincidences
         
+        resolution=self.parent.deviceresolution
+        self.parent.coincidence_spinBox.setValue(resolution)
+        self.stepSpin.setValue(resolution)    
         self.parent.sampling_widget.setValue(100)
         self.stopSpin.setValue(100)
         self.stopSpin.setButtonSymbols(QSpinBox.NoButtons)
