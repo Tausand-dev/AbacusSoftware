@@ -1065,11 +1065,17 @@ class G2Dialog(SweepDialogBase):
         if self.completed:
             self.saveButton.setEnabled(True)
             self.savePlotsButton.setEnabled(True)
+            self.comboBox1.setEnabled(True)
+            self.comboBox2.setEnabled(True)
             self.timer.stop()
             self.completed = False
             self.startStopButton.setText("Start")
             self.startStopButton.setStyleSheet("background-color: none")
             self.enableWidgets(True)
+            self.stopSpin.setEnabled(False)
+            self.startSpin.setEnabled(False)
+            self.stepSpin.setEnabled(False)
+            self.nSpin.setEnabled(False)
             self.parent.check_timer.start()
 
         
