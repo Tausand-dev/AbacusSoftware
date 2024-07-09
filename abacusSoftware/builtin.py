@@ -1054,7 +1054,15 @@ class G2Dialog(SweepDialogBase):
             x_sortedg2, y_sortedg2 = zip(*paired_sortedg2)
             self.x_data = list(x_sortedg2)
             self.g2data = list(y_sortedg2)
-        self.plot_line.setData(self.x_data, self.g2data)
+        pairednewg2 = list(zip(self.x_data, self.g2data))
+        new_x_data=[]
+        new_g2_data=[]
+        for i in pairednewg2:
+            if i[1]!=-1:
+                new_x_data.append(i[0])
+                new_g2_data.append(i[1])
+        
+        self.plot_line.setData(new_x_data, new_g2_data)
         
         # self.plot_line1.setData(self.x_data, self.y_datach1)
         # self.plot_line2.setData(self.x_data, self.y_datach2)
@@ -1204,7 +1212,7 @@ class G2Dialog(SweepDialogBase):
                         g2value=(coincidences/counts12)*self.mulConst
                     else:
                         #Define 0 if there is no counts
-                        g2value=0
+                        g2value=-1
                         
                     self.g2data.append(g2value)
                     
