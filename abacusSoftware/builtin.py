@@ -832,7 +832,7 @@ class G2Dialog(SweepDialogBase):
                 channel12 = channel2+channel1
 
             self.plot.setLabel('left', "g(2) " + channel12)
-            self.plot.setLabel('bottom', "Coincidence time ", units='ns')
+            self.plot.setLabel('bottom', "Delay time ", units='ns')
     def save_file(self):
         # if self.saveg2sentinel==0:
         
@@ -956,6 +956,10 @@ class G2Dialog(SweepDialogBase):
             self.completed = True
             self.updatePlot()
             self.completed = True
+            self.stopSpin.setEnabled(False)
+            self.startSpin.setEnabled(False)
+            self.stepSpin.setEnabled(False)
+            self.nSpin.setEnabled(False)
 
         else:
             self.comboBox1.setEnabled(False)
@@ -1226,7 +1230,7 @@ class G2Dialog(SweepDialogBase):
         else:
             channel12 = channel2+channel1
         self.plot.setLabel('left', "g(2) " + channel12)
-        self.plot.setLabel('bottom', "Coincidence time ", units='ns')
+        self.plot.setLabel('bottom', "Delay time ", units='ns')
 
     def updateConstants(self): #new on v1.4.0 (2020-06-30)
         try:
