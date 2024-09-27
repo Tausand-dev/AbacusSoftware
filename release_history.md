@@ -1,3 +1,7 @@
+# Release Notes 1.6.2 - September 2024
+## New features
+* Updated requirements.txt to solve known security vulnerabilities.
+ 
 # Release Notes 1.6.1 - March 2024
 ## New features
 * Fixed name and paths with not supported symbols in windows,mac, linux.
