@@ -5,7 +5,7 @@
 
 import os
 
-version="1.6.1"
+version="1.6.2"
 #We update the constants.py file
 
 def actualizar_constants(nombre_archivo,nuevo_numero_version):  
